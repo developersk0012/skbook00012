@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MULTIVERSE BOOKS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        background: linear-gradient(180deg, #000, #0a0a0a, #111, #000);
+        color: #fff;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Loader Screen */
+      .loader-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background: radial-gradient(circle at top, #111827, #050505 70%);
+        z-index: 999999;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+      }
+
+      .loader-hex-bg {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+
+      .hex-grid {
+        position: absolute;
+        top: -40px;
+        left: -40px;
+        display: flex;
+        flex-wrap: wrap;
+        width: 120%;
+      }
+
+      .hex {
+        position: relative;
+        width: 100px;
+        height: 57.74px;
+        margin: 28.87px 2px;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+      }
+
+      .hex::before,
+      .hex::after {
+        content: "";
+        position: absolute;
+        width: 70.71px;
+        height: 70.71px;
+        left: 13px;
+        transform: scaleY(0.5774) rotate(-45deg);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .hex::before {
+        top: -35px;
+      }
+
+      .hex::after {
+        bottom: -35px;
+      }
+
+      .hex:nth-child(20n+11),
+      .hex:nth-child(20n+12),
+      .hex:nth-child(20n+13),
+      .hex:nth-child(20n+14),
+      .hex:nth-child(20n+15),
+      .hex:nth-child(20n+16),
+      .hex:nth-child(20n+17),
+      .hex:nth-child(20n+18),
+      .hex:nth-child(20n+19),
+      .hex:nth-child(20n+20) {
+        transform: translateX(52px);
+      }
+
+      .hex span {
+        position: absolute;
+        width: 2px;
+        height: 160px;
+        left: 50%;
+        bottom: -180px;
+        transform: translateX(-50%);
+        background: linear-gradient(to top, transparent, rgba(255, 255, 255, 0.2), #fff, rgba(255, 255, 255, 0.2), transparent);
+        box-shadow: 0 0 10px #fff;
+        animation: moveUp 4s linear infinite;
+        opacity: 0;
+      }
+
+      @keyframes moveUp {
+        0% {
+          bottom: -180px;
+          opacity: 0;
+        }
+        15% {
+          opacity: 1;
+        }
+        100% {
+          bottom: 180px;
+          opacity: 0;
+        }
+      }
+
+      .loader-logo {
+        position: relative;
+        width: 115px;
+        height: 115px;
+        border-radius: 30px;
+        padding: 4px;
+        background: linear-gradient(135deg, #fff, #f1f5f9);
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.55), 0 0 35px rgba(255, 255, 255, 0.45), 0 0 60px rgba(255, 255, 255, 0.25);
+        animation: pulse 2s infinite;
+        z-index: 5;
+        overflow: hidden;
+      }
+
+      .loader-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 26px;
+      }
+
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .loader-title {
+        margin-top: 20px;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        z-index: 5;
+      }
+
+      .premium-tags {
+        display: flex;
+        margin-top: 18px;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        z-index: 5;
+        padding: 0 10px;
+      }
+
+      .tag {
+        display: flex;
+        padding: 8px 14px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        align-items: center;
+        gap: 7px;
+        font-size: 10px;
+        font-weight: 700;
+        backdrop-filter: blur(12px);
+      }
+
+      .tag i {
+        color: #fff;
+        filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
+      }
+
+      .loader-bar {
+        position: relative;
+        width: 200px;
+        height: 7px;
+        border-radius: 30px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.08), 0 0 12px rgba(255, 255, 255, 0.08);
+        margin-top: 28px;
+        z-index: 5;
+        overflow: hidden;
+      }
+
+      .loader-fill {
+        position: relative;
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, #fff, #f8fafc, #fff);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.55), 0 0 35px rgba(255, 255, 255, 0.3);
+        animation: load 3s linear forwards;
+      }
+
+      .loader-fill::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -40%;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+        animation: shineMove 1.2s linear infinite;
+      }
+
+      @keyframes shineMove {
+        0% {
+          left: -40%;
+        }
+        100% {
+          left: 120%;
+        }
+      }
+
+      @keyframes load {
+        0% {
+          width: 0%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
+
+      /* Main Site */
+      .main-site {
+        position: relative;
+        display: none;
+        flex-direction: column;
+        min-height: 100vh;
+        z-index: 5;
+        padding-bottom: 0;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid #303030;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+      }
+
+      .left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .menu {
+        width: 30px;
+        cursor: pointer;
+      }
+
+      .menu div {
+        height: 3px;
+        background: #fff;
+        margin: 5px 0;
+        border-radius: 10px;
+      }
+
+      .logo {
+        font-size: 17px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .logo-space {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+      }
+
+      .logo-space img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .search-box {
+        position: relative;
+        width: 92%;
+        margin: 18px auto;
+        z-index: 5;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #d1d5db;
+      }
+
+      .search-box input {
+        width: 100%;
+        height: 54px;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid #303030;
+        outline: none;
+        border-radius: 18px;
+        color: #fff;
+        padding-left: 50px;
+        font-size: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+      }
+
+      .book-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        padding: 12px;
+        position: relative;
+        z-index: 10;
+      }
+
+      .book-card {
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        border-radius: 22px;
+        overflow: hidden;
+        position: relative;
+        z-index: 10;
+      }
+
+      .book-image {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .book-details {
+        padding: 12px;
+      }
+
+      .book-title {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 24px;
+        margin-bottom: 12px;
+        min-height: 48px;
+      }
+
+      .download-btn {
+        width: 100%;
+        height: 48px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        background: linear-gradient(145deg, #1a1a1a, #2b2b2b, #3a3a3a);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .not-found {
+        width: 90%;
+        margin: 40px auto;
+        padding: 38px 20px;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-radius: 28px;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid #303030;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+        backdrop-filter: blur(18px);
+        text-align: center;
+      }
+
+      .not-found i {
+        font-size: 42px;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, #00e5ff, #6d6dff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .not-found h2 {
+        font-size: 25px;
+        font-weight: 800;
+        margin-bottom: 10px;
+      }
+
+      .not-found p {
+        font-size: 14px;
+        line-height: 26px;
+        color: #94a3b8;
+      }
+
+      .main-footer-text {
+        width: 100%;
+        height: 42px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 10px;
+        font-weight: 700;
+        color: #9ca3af;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: #0a0a0a;
+        margin: 25px auto 0;
+        padding: 10px 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      /* Download Page */
+      .download-page {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(180deg, #000, #0a0a0a, #111, #000);
+        background-attachment: fixed;
+        z-index: 99999;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 18px;
+        display: none;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      .download-page::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.03), transparent 30%),
+                    radial-gradient(circle at 80% 40%, rgba(255, 255, 255, 0.03), transparent 30%),
+                    radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.03), transparent 30%);
+        z-index: -1;
+      }
+
+      .download-top {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .close-btn {
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35), 0 0 12px rgba(255, 255, 255, 0.04);
+        font-size: 22px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .close-btn i {
+        color: #fff;
+        -webkit-text-fill-color: #ffffff;
+        background: none;
+        filter: none;
+      }
+
+      .download-logo {
+        font-size: 22px;
+        font-weight: 900;
+      }
+
+      .preview-image {
+        width: 100%;
+        max-height: 520px;
+        object-fit: contain;
+        border-radius: 28px;
+        padding: 10px;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.04), 0 10px 25px rgba(0, 0, 0, 0.35);
+      }
+
+      .preview-title {
+        margin-top: 20px;
+        font-size: 24px;
+        font-weight: 800;
+        line-height: 34px;
+      }
+
+      .main-download {
+        width: 100%;
+        height: 62px;
+        border: none;
+        border-radius: 22px;
+        margin-top: 22px;
+        background: linear-gradient(135deg, #00c853, #00e676);
+        color: #fff;
+        font-size: 18px;
+        font-weight: 700;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+      }
+
+      .box {
+        width: 100%;
+        margin-top: 14px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        display: flex;
+        gap: 14px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: #fff;
+        text-decoration: none;
+        min-height: 68px;
+        align-items: center;
+      }
+
+      .box i {
+        font-size: 20px;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #232323, #303030);
+      }
+
+      .box-title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .box-sub {
+        font-size: 12px;
+        color: #bdbdbd;
+        margin-top: 2px;
+      }
+
+      .file-size {
+        margin-left: auto;
+        font-size: 16px;
+        font-weight: 800;
+        color: #00e676;
+      }
+
+      .copyright-text {
+        width: 100%;
+        padding: 15px 10px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #9ca3af;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 15px;
+        margin-bottom: 0;
+        text-align: center;
+      }
+
+      /* Menu */
+      .menu-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(5px);
+        display: none;
+        z-index: 999998;
+      }
+
+      .side-menu {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 78%;
+        height: 100vh;
+        background: linear-gradient(180deg, #000, #0a0a0a, #111, #000);
+        z-index: 999999;
+        padding: 20px;
+        transition: 0.4s;
+        overflow-y: auto;
+      }
+
+      .side-menu.active {
+        left: 0;
+      }
+
+      .menu-logo {
+        font-size: 20px;
+        font-weight: 900;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .menu-logo-img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+      }
+
+      .menu-divider {
+        width: 100%;
+        height: 2px;
+        margin: 18px 0;
+        background: linear-gradient(90deg, transparent, #00e5ff, #6d6dff, transparent);
+        border-radius: 50px;
+      }
+
+      .menu-item {
+        width: 100%;
+        margin-top: 16px;
+        padding: 0 20px;
+        border-radius: 22px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        font-size: 16px;
+        font-weight: 700;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: 0.3s;
+        text-decoration: none;
+        color: #fff;
+        min-height: 68px;
+        cursor: pointer;
+      }
+
+      .menu-item:hover {
+        transform: translateX(6px);
+      }
+
+      .menu-icon-box {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 18px;
+        background: linear-gradient(145deg, #1a1a1a, #2b2b2b, #3a3a3a);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .menu-icon-box i {
+        font-size: 20px;
+        background: linear-gradient(135deg, #fff, #9be7ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.25));
+      }
+
+      .connect-divider {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 26px 0 18px;
+      }
+
+      .connect-divider::before {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #fff, transparent);
+        opacity: 0.15;
+      }
+
+      .connect-divider span {
+        position: relative;
+        padding: 0 16px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        background: #0a0a0a;
+        color: #cbd5e1;
+      }
+
+      .menu-item.whatsapp {
+        background: linear-gradient(145deg, rgba(0, 255, 110, 0.12), rgba(10, 20, 15, 0.95));
+        border: 1px solid rgba(37, 211, 102, 0.24);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 22px rgba(37, 211, 102, 0.12);
+        color: #bbf7d0;
+      }
+
+      .menu-item.telegram {
+        background: linear-gradient(145deg, rgba(0, 170, 255, 0.14), rgba(10, 15, 22, 0.95));
+        border: 1px solid rgba(34, 158, 217, 0.26);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 22px rgba(34, 158, 217, 0.12);
+        color: #7dd3fc;
+      }
+
+      .menu-item.instagram {
+        background: linear-gradient(145deg, rgba(255, 0, 128, 0.14), rgba(25, 10, 25, 0.95));
+        border: 1px solid rgba(255, 105, 180, 0.25);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 22px rgba(255, 0, 128, 0.12);
+        color: #f9a8d4;
+      }
+
+      /* About Pages */
+      .about-page {
+        position: fixed;
+        top: 0;
+        left: 100%;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(180deg, #000, #0a0a0a, #111, #000);
+        z-index: 999999;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transition: 0.5s;
+        padding: 18px;
+      }
+
+      .about-page.active {
+        left: 0;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1000px;
+        margin: auto;
+      }
+
+      .profile {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 25px;
+      }
+
+      .profile-box {
+        position: relative;
+        width: 290px;
+        height: 290px;
+        border-radius: 38px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .profile-box::before {
+        content: "";
+        position: absolute;
+        inset: -6px;
+        border-radius: 42px;
+        background: conic-gradient(#22c55e, #8b5cf6, #00c2ff, #22c55e);
+        animation: rotateGlow 3s linear infinite;
+        filter: blur(6px);
+      }
+
+      .profile-box::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border-radius: 39px;
+        background: #02040a;
+      }
+
+      .profile-box img {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 28px;
+        padding: 8px;
+      }
+
+      @keyframes rotateGlow {
+        0% {
+          transform: rotate(0);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .name {
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+
+      .quote {
+        font-size: 15px;
+        font-style: italic;
+        margin-bottom: 28px;
+        color: #dbeafe;
+        text-align: center;
+      }
+
+      .about-card {
+        width: 100%;
+        margin-bottom: 16px;
+        padding: 16px 18px;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid #303030;
+      }
+
+      .icon {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb, #38bdf8);
+        font-size: 18px;
+      }
+
+      .heading {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .detail {
+        font-size: 14px;
+        color: #cbd5e1;
+        margin-top: 2px;
+      }
+
+      .about-footer-bottom {
+        width: 100%;
+        margin-top: auto;
+        padding: 15px 10px;
+        font-size: 10px;
+        font-weight: 700;
+        color: #9ca3af;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: center;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 35px;
+      }
+
+      .hero-title {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #fff, #d1d5db, #9ca3af);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .hero-subtitle {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .hero-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 11px;
+        font-weight: 700;
+        color: #d1d5db;
+      }
+
+      .divider {
+        height: 1px;
+        margin: 28px 0;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      }
+
+      .section {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 15px;
+      }
+
+      .section p {
+        line-height: 1.9;
+        color: #cbd5e1;
+      }
+
+      .mini-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 12px;
+        color: #fff;
+      }
+
+      .book-icon {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+      }
+
+      .copyright-icon {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      }
+
+      .shield-icon {
+        background: linear-gradient(135deg, #f59e0b, #ea580c);
+      }
+
+      .card {
+        margin-top: 22px;
+        padding: 24px;
+        border-radius: 24px;
+        background: linear-gradient(145deg, #0f0f0f, #1b1b1b, #242424);
+        border: 1px solid #303030;
+      }
+
+      .card-title {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 12px;
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 15px;
+      }
+
+      .card p {
+        text-align: center;
+        line-height: 1.9;
+        color: #e5e7eb;
+      }
+
+      .contact-links {
+        text-align: center;
+        line-height: 2.2;
+      }
+
+      .telegram-link {
+        color: #60a5fa;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .telegram-link:hover {
+        color: #93c5fd;
+      }
+
+      .review-time {
+        color: #cbd5e1;
+        font-size: 14px;
+      }
+
+      .image-quote {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        max-width: fit-content;
+        padding: 10px 18px;
+        margin: 14px auto 18px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+        color: #f8fafc;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .notfound-quote {
+        margin-top: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #e5e7eb;
+      }
+
+      @media (max-width: 768px) {
+        .book-image {
+          height: 210px;
+        }
+        .logo {
+          font-size: 15px;
+        }
+        .preview-title {
+          font-size: 20px;
+          line-height: 30px;
+        }
+        .hero-title {
+          font-size: 24px;
+        }
+        .card-title,
+        .section-title {
+          font-size: 19px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loader-screen" id="loaderScreen">
+      <div class="loader-hex-bg">
+        <div class="hex-grid" id="hexGrid"></div>
+      </div>
+      <div class="loader-logo">
+        <img src="https://i.postimg.cc/cJdGqYHG/IMG-20260524-WA0004.jpg" alt="logo" />
+      </div>
+      <div class="loader-title">MULTIVERSE BOOKS</div>
+      <div class="premium-tags">
+        <div class="tag"><i class="fa-solid fa-file-pdf"></i> PDF</div>
+        <div class="tag"><i class="fa-solid fa-note-sticky"></i> NOTES</div>
+        <div class="tag"><i class="fa-solid fa-square-root-variable"></i> FORMULA</div>
+        <div class="tag"><i class="fa-solid fa-layer-group"></i> MORE</div>
+      </div>
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+
+    <!-- Main Site -->
+    <div class="main-site" id="mainSite">
+      <div class="header">
+        <div class="left">
+          <div class="menu" onclick="openMenu()">
+            <div></div><div></div><div></div>
+          </div>
+          <div class="logo">MULTIVERSE BOOKS</div>
+        </div>
+        <div class="logo-space">
+          <img src="https://i.postimg.cc/cJdGqYHG/IMG-20260524-WA0004.jpg" alt="logo" />
+        </div>
+      </div>
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="searchInput" placeholder="Search Books..." />
+      </div>
+      <div class="not-found" id="notFound">
+        <i class="fa-solid fa-book-open"></i>
+        <h2>BOOK NOT FOUND</h2>
+        <p>Sorry, we couldn't find any book matching your search. Please try another keyword.</p>
+        <div class="notfound-quote quote-style">POWERED BY : MADxPRINCE</div>
+      </div>
+      <div class="book-container" id="bookContainer"></div>
+      <div class="main-footer-text">© MULTIVERSE BOOKS | DESIGNED &amp; DEVELOPED BY MADxPRINCE</div>
+    </div>
+
+    <!-- Menu Overlay & Side Menu -->
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+      <div class="menu-logo">
+        <img src="https://i.postimg.cc/cJdGqYHG/IMG-20260524-WA0004.jpg" class="menu-logo-img" alt="logo" />
+        MULTIVERSE BOOKS
+      </div>
+      <div class="menu-divider"></div>
+      <div class="menu-item" onclick="goHome()">
+        <div class="menu-icon-box"><i class="fa-solid fa-house"></i></div>
+        Home
+      </div>
+      <div class="menu-item" onclick="openAboutPage()">
+        <div class="menu-icon-box"><i class="fa-solid fa-user"></i></div>
+        About Developer
+      </div>
+      <a href="https://t.me/Multiverse_Contact_Bot" class="menu-item">
+        <div class="menu-icon-box"><i class="fa-solid fa-address-book"></i></div>
+        Contact
+      </a>
+      <div class="menu-item apk-card" onclick="openDisclaimerPage()">
+        <div class="apk-logo"><i class="fa-solid fa-shield-halved"></i><span>DMCA</span></div>
+        DMCA Request
+      </div>
+      <div class="connect-divider"><span>CONNECT WITH US</span></div>
+      <a href="https://whatsapp.com/channel/0029Vb6NBZx1yT2GByTTVf2A" target="_blank" class="menu-item whatsapp">
+        <div class="menu-icon-box"><i class="fa-brands fa-whatsapp"></i></div>
+        WHATSAPP
+      </a>
+      <a href="https://t.me/MultiverseBooks" target="_blank" class="menu-item telegram">
+        <div class="menu-icon-box"><i class="fa-brands fa-telegram"></i></div>
+        TELEGRAM
+      </a>
+      <a href="https://www.instagram.com/madxprince_3030" target="_blank" class="menu-item instagram">
+        <div class="menu-icon-box"><i class="fa-brands fa-instagram"></i></div>
+        INSTAGRAM
+      </a>
+    </div>
+
+    <!-- About Page -->
+    <div class="about-page" id="aboutPage">
+      <div class="download-top">
+        <button class="close-btn" onclick="closeAboutPage()"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="download-logo">𝗔ʙᴏᴜᴛ 𝗗ᴇᴠᴇʟᴏᴘᴇʀ</div>
+      </div>
+      <div class="container">
+        <div class="profile">
+          <div class="profile-box">
+            <img src="https://i.postimg.cc/D0BF1b77/file-000000000e847207a64f6711d825a859.png" alt="profile" />
+          </div>
+        </div>
+        <div class="name">Hey there! I'm MADxPRINCE</div>
+        <div class="quote">"Dream Big, Hustle Hard, and Never Stop Exploring!"</div>
+        <div class="about-card">
+          <div class="icon"><i class="fa-solid fa-graduation-cap"></i></div>
+          <div><div class="heading">Education</div><div class="detail">𝐂ʟᴀss 𝟏𝟏𝐭𝐡 (PCMB) | 𝐁ᴀᴛᴄʜ: 𝟐𝟎𝟐𝟔-𝟐𝟖</div></div>
+        </div>
+        <div class="about-card">
+          <div class="icon"><i class="fa-solid fa-location-dot"></i></div>
+          <div><div class="heading">Location</div><div class="detail">ʙɪʜᴀʀ , 𝐈ɴᴅɪᴀ 🚩</div></div>
+        </div>
+        <div class="about-card">
+          <div class="icon"><i class="fa-solid fa-cake-candles"></i></div>
+          <div><div class="heading">Birthday</div><div class="detail">𝟲 ᴅᴇᴄᴇᴍʙᴇʀ 💐❤️‍🩹</div></div>
+        </div>
+        <div class="about-card">
+          <div class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div><div class="heading">Skills</div><div class="detail">𝐇𝐞𝐡𝐞... 𝐍𝐨𝐭𝐡𝐢𝐧𝐠 ☠️</div></div>
+        </div>
+        <div class="about-footer-bottom">© MULTIVERSE BOOKS | DESIGNED &amp; DEVELOPED BY MADxPRINCE</div>
+      </div>
+    </div>
+
+    <!-- Disclaimer Page -->
+    <div class="about-page" id="disclaimerPage">
+      <div class="download-top">
+        <button class="close-btn" onclick="closeDisclaimerPage()"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="download-logo">DMCA REQUEST</div>
+      </div>
+      <div class="container">
+        <div class="hero">
+          <h1 class="hero-title">COPYRIGHT DISCLAIMER</h1>
+          <div class="hero-subtitle">
+            <span class="hero-badge"><i class="fa-solid fa-graduation-cap"></i> Educational</span>
+            <span class="hero-badge"><i class="fa-solid fa-flask"></i> Research</span>
+            <span class="hero-badge"><i class="fa-solid fa-book-open"></i> Reference</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="section">
+          <h2 class="section-title"><span class="mini-icon book-icon"><i class="fa-solid fa-book"></i></span> Content Ownership</h2>
+          <p>This website is created solely for educational, informational and archival purposes. We do not claim ownership of any copyrighted material shared on this platform. All copyrights, trademarks and intellectual property rights belong to their respective authors, publishers and owners.</p>
+        </div>
+        <div class="divider"></div>
+        <div class="section">
+          <h2 class="section-title"><span class="mini-icon copyright-icon"><i class="fa-solid fa-copyright"></i></span> Copyright Concerns</h2>
+          <p>If you are the copyright owner of any material available here and believe that your content has been shared without proper authorization, please contact us.</p>
+        </div>
+        <div class="card">
+          <h2 class="card-title contact-title"><span class="mini-icon book-icon"><i class="fa-solid fa-envelope"></i></span> Contact Information</h2>
+          <div class="contact-links">
+            <a href="https://t.me/Multiverse_Contact_Bot" target="_blank" class="telegram-link"><i class="fa-brands fa-telegram"></i> @Multiverse_Contact_Bot</a><br />
+            <span class="review-time">⏱ Review Time: 24–48 Hours</span>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title notice-title"><span class="mini-icon shield-icon"><i class="fa-solid fa-shield-halved"></i></span> Important Notice</h2>
+          <p>The materials shared on this platform are intended for educational, research, review and reference purposes only. Users are encouraged to support authors and publishers by purchasing original books whenever possible.</p>
+        </div>
+        <div class="card">
+          <h2 class="card-title responsibility-title"><span class="mini-icon copyright-icon"><i class="fa-solid fa-user-shield"></i></span> User Responsibility</h2>
+          <p>Users are solely responsible for how they access, download, share or use any content available through this platform. This website and its administrators cannot be held responsible for any misuse, redistribution or unauthorized use of the materials by users.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Download Page -->
+    <div class="download-page" id="downloadPage">
+      <div class="download-top">
+        <button class="close-btn" onclick="closeDownloadPage()"><i class="fa-solid fa-arrow-left"></i></button>
+        <div class="download-logo">MULTIVERSE BOOKS</div>
+      </div>
+      <img id="previewImage" class="preview-image" alt="book preview" />
+      <div style="text-align: left;"><div class="image-quote quote-style">POWERED BY : MADxPRINCE</div></div>
+      <h2 class="preview-title" id="bookTitle"></h2>
+      <a id="pdfLink" href="#" target="_blank"><button class="main-download"><i class="fa-solid fa-download"></i> Download PDF</button></a>
+      <a id="youtubeLink" href="#" target="_blank" class="box">
+        <i class="fa-brands fa-youtube"></i>
+        <div><div class="box-title">Watch Tutorials.</div><div class="box-sub">How to download books ?</div></div>
+      </a>
+      <div class="box" onclick="shareBook()">
+        <i class="fa-solid fa-share-nodes"></i>
+        <div><div class="box-title">Share this book</div><div class="box-sub">Send this book to friends</div></div>
+      </div>
+      <div class="box">
+        <i class="fa-solid fa-file"></i>
+        <div><div class="box-title">File Size</div><div class="box-sub">Compressed PDF File</div></div>
+        <div class="file-size" id="fileSize"></div>
+      </div>
+      <div class="copyright-text">© MULTIVERSE BOOKS | DESIGNED &amp; DEVELOPED BY MADxPRINCE</div>
+    </div>
+
+    <script>
+      // Books data
+      const books = [
+        { id: 'MxP1', title: 'Mahabharata - महाभारत', image: 'https://i.postimg.cc/j5KpsYmr/shopping.webp', size: '247 MB', pdf: 'https://drive.google.com/file/d/1ydEWq4_M2UFqxqiG_1MfR9xiyNAVrQSm/view?usp=drivesdk', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP2', title: 'Ramayana - रामायण', image: 'https://i.postimg.cc/N060SDPp/ramayan-c77a1f6e-9928-40f8-acf9-e3c14bbc0707.jpg', size: '15 MB', pdf: 'https://drive.google.com/file/d/1VO_f4uGHVn_n4hdgLF376FxvwCLp_jgG/view?usp=drivesdk', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP3', title: 'Bhagavad Gita - श्रीमद्भगवद्गीता', image: 'https://i.postimg.cc/2j0sfJxG/shopping-(2).webp', size: '50 MB', pdf: 'https://drive.google.com/file/d/1Q4E6g5SVrkX6PVZp2JOOO1xfu6Fu-MWk/view?usp=drivesdk', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP4', title: 'Hanuman Chalisa - हनुमान चालीसा', image: 'https://i.postimg.cc/6qz2HwsS/Hanuman-Chalisa-2361-2344-2369-2350-2366-2344-2330-2366-2354-2368-2360-2366-Paperback-9789394598836.jpg', size: '10 MB', pdf: 'https://drive.google.com/file/d/1K2Cd-C6GvPM4PI95sp5FecX6AfdxvNZq/view?usp=drivesdk', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP5', title: 'Vishnu Purana — विष्णु पुराण', image: 'https://i.postimg.cc/QdwqK7g2/1000098816.jpg', size: '10 MB', pdf: 'https://drive.google.com/file/d/1kvg-nKI4Wgq5qi5zSsFRwyrzb2f5LHZe/view?usp=drivesdk', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP6', title: 'Shiva Purana — शिव पुराण', image: 'https://i.postimg.cc/wj7VB2NX/1000098815.jpg', size: '10 MB', pdf: 'https://drive.google.com/file/d/1OKTiI9hhUnSTNGEoAcRt_Cb5WF78I9Zt/view?usp=drivesdk', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP7', title: 'ज्ञान बिन्दु जी. एस. एकेडमी - BIOLOGY by Raushan anand sir', image: 'https://i.postimg.cc/TY310Zt4/1000098933.jpg', size: '18.8 MB', pdf: 'https://arolinks.com/xZxe', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP8', title: 'ज्ञान बिन्दु जी. एस. एकेडमी - Chemistry by Raushan anand sir', image: 'https://i.postimg.cc/6pDQ9Ttb/1000098934.jpg', size: '19.9 MB', pdf: 'https://arolinks.com/bif90B', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP9', title: 'ज्ञान बिन्दु जी. एस. एकेडमी - Physics by Raushan anand sir', image: 'https://i.postimg.cc/mryW0rD8/IMG-20260530-WA0021.jpg', size: '10 MB', pdf: 'https://arolinks.com/WPly', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' },
+        { id: 'MxP10', title: 'भारतीय अर्थव्यवस्था By Raushan Anand Sir', image: 'https://i.postimg.cc/0yfbC9vv/IMG-20260521-121655-296.jpg', size: '10 MB', pdf: 'https://arolinks.com/eoPn', youtube: 'https://youtube.com/shorts/YjGfSA0Yn_0?si=LsWCiWOgCT-JfGS2' }
+      ];
+
+      // Helper functions
+      function renderBooks() {
+        const container = document.getElementById('bookContainer');
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = books.filter(b => b.title.toLowerCase().includes(searchTerm));
+        
+        if (filtered.length === 0) {
+          document.getElementById('notFound').style.display = 'flex';
+          container.style.display = 'none';
+          return;
+        }
+        document.getElementById('notFound').style.display = 'none';
+        container.style.display = 'grid';
+        
+        container.innerHTML = filtered.map(book => `
+          <div class="book-card">
+            <img class="book-image" src="${book.image}" alt="${book.title}" />
+            <div class="book-details">
+              <div class="book-title">${book.title}</div>
+              <button class="download-btn" onclick='openDownloadPage("${book.id}", "${book.title.replace(/'/g, "\\'")}", "${book.pdf}", "${book.size}", "${book.youtube}")'>
+                <i class="fa-solid fa-download"></i> Download
+              </button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      let currentBookTitle = '', currentPdfLink = '', currentBookId = '';
+
+      function openDownloadPage(id, title, pdfLink, size, youtube) {
+        currentBookId = id;
+        currentBookTitle = title;
+        currentPdfLink = pdfLink;
+        document.getElementById('bookTitle').innerText = title;
+        document.getElementById('previewImage').src = books.find(b => b.id === id)?.image || '';
+        document.getElementById('pdfLink').href = pdfLink;
+        document.getElementById('fileSize').innerText = size;
+        document.getElementById('youtubeLink').href = youtube;
+        document.getElementById('downloadPage').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDownloadPage() {
+        document.getElementById('downloadPage').style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+
+      function shareBook() {
+        if (navigator.share) {
+          navigator.share({ title: currentBookTitle, url: currentPdfLink });
+        } else {
+          navigator.clipboard.writeText(currentPdfLink);
+          alert('Link Copied!');
+        }
+      }
+
+      function openMenu() {
+        document.getElementById('sideMenu').classList.add('active');
+        document.getElementById('menuOverlay').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeMenu() {
+        document.getElementById('sideMenu').classList.remove('active');
+        document.getElementById('menuOverlay').style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+
+      function goHome() {
+        closeMenu();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      function openAboutPage() {
+        closeMenu();
+        document.getElementById('aboutPage').classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeAboutPage() {
+        document.getElementById('aboutPage').classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+
+      function openDisclaimerPage() {
+        closeMenu();
+        document.getElementById('disclaimerPage').classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDisclaimerPage() {
+        document.getElementById('disclaimerPage').classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+
+      // Loader and initialization
+      window.addEventListener('load', () => {
+        const loader = document.getElementById('loaderScreen');
+        const mainSite = document.getElementById('mainSite');
+        
+        setTimeout(() => {
+          loader.style.opacity = '0';
+          loader.style.visibility = 'hidden';
+          mainSite.style.display = 'flex';
+          renderBooks();
+        }, 2500);
+      });
+
+      // Hex grid generation
+      const hexGrid = document.getElementById('hexGrid');
+      for (let i = 0; i < 220; i++) {
+        const hex = document.createElement('div');
+        hex.classList.add('hex');
+        const light = document.createElement('span');
+        hex.appendChild(light);
+        hexGrid.appendChild(hex);
+      }
+
+      // Search functionality
+      document.getElementById('searchInput').addEventListener('keyup', renderBooks);
+    </script>
+  </body>
+</html>
