@@ -1,17 +1,126 @@
-<!doctype html><html><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Panel</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script src="config.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Admin • Messages</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="config.js"></script>
 <style>
-*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Arial,sans-serif;background:#07111f;color:#eef5ff}.login{width:min(400px,92vw);margin:80px auto;padding:30px;border-radius:22px;background:#0d192b;border:1px solid #263752;text-align:center}.login .i{font-size:48px}.login input{width:100%;padding:14px;margin:10px 0;border-radius:12px;border:1px solid #31445f;background:#101f34;color:#fff}.login button{width:100%;padding:14px;border:0;border-radius:12px;background:#635bff;color:#fff;font-weight:bold}.err{height:24px;color:#ff6b8a;margin-top:8px}
-.panel{display:none;height:100%;max-width:1100px;margin:auto;flex-direction:column}.top{height:64px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;background:#0d1b2e;border-bottom:1px solid #223149}.body{display:flex;flex:1;min-height:0}.list{width:300px;overflow:auto;background:#0b1727;border-right:1px solid #223149}.item{padding:14px;border-bottom:1px solid #1b2a3f;cursor:pointer}.item.active,.item:hover{background:#13243b}.item b,.item small{display:block}.item small{color:#8ea0b8;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.thread{flex:1;display:flex;flex-direction:column;min-width:0}.th{padding:12px 16px;background:#0d1b2e;border-bottom:1px solid #223149}.th small{display:block;color:#8ea0b8;margin-top:3px}.msgs{flex:1;overflow:auto;padding:14px}.row{display:flex;margin:7px 0}.admin{justify-content:flex-end}.b{max-width:78%;padding:9px 11px;border-radius:16px 16px 16px 5px;background:#172a42;white-space:pre-wrap;word-break:break-word}.admin .b{background:#635bff;border-radius:16px 16px 5px 16px}.t{display:block;font-size:10px;opacity:.65;text-align:right;margin-top:4px}.compose{display:flex;gap:8px;padding:10px;background:#0d1b2e;border-top:1px solid #223149}.compose input{flex:1;padding:12px;border-radius:22px;border:1px solid #2b3e59;background:#101f34;color:#fff}.compose button{width:48px;border:0;border-radius:50%;background:#635bff;color:#fff}@media(max-width:700px){.list{width:115px}.item{padding:10px;font-size:13px}.item small{display:none}}
-</style></head><body>
-<div class="login" id="login"><div class="i">🛡️</div><h2>Admin Panel</h2><p>Password required</p><input id="pass" type="password" placeholder="Admin password"><button id="go">Login</button><div class="err" id="err"></div></div>
-<div class="panel" id="panel"><div class="top"><b>💬 Admin Messages</b><span id="count">0 chats</span></div><div class="body"><div class="list" id="list"></div><div class="thread"><div class="th"><b id="title">Select a chat</b><small id="sub">User chat</small></div><div class="msgs" id="msgs"><div style="text-align:center;color:#71839d;margin-top:50px">Select a user</div></div><form class="compose" id="form"><input id="text" placeholder="Type a message..." autocomplete="off"><button>➤</button></form></div></div></div>
+:root{
+  --bg:#070b14;--panel:#0d1422;--panel2:#111a2b;--line:#1d2a40;
+  --text:#f4f7fb;--muted:#8290a6;--accent:#6c63ff;--accent2:#8178ff;
+  --bubble:#17243a;--danger:#ff6684;--online:#47d7a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:
+radial-gradient(900px 500px at 15% -10%,#25205b55,transparent 60%),var(--bg);color:var(--text)}
+button,input{font:inherit}
+button{cursor:pointer}
+.login{width:min(430px,92vw);margin:auto;padding:34px 30px 28px;border:1px solid #26344d;
+border-radius:28px;background:linear-gradient(180deg,#111a2b,#0b1220);box-shadow:0 30px 100px #0009;text-align:center}
+.login .logo{width:76px;height:76px;margin:0 auto 18px;border-radius:24px;display:grid;place-items:center;
+background:linear-gradient(135deg,var(--accent),#3f8cff);font-size:34px;box-shadow:0 15px 40px #6158ff44}
+.login h2{margin:0;font-size:25px}.login p{margin:8px 0 24px;color:var(--muted)}
+.login input{width:100%;padding:15px 16px;margin:0 0 11px;border-radius:14px;border:1px solid #2a3953;
+background:#0a1120;color:#fff;outline:none}.login input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6c63ff22}
+.login button{width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+color:#fff;font-weight:800;box-shadow:0 12px 30px #635bff33}.login button:disabled{opacity:.6;cursor:wait}
+.err{min-height:22px;color:var(--danger);margin-top:10px;font-size:13px}
+
+.panel{display:none;height:100%;max-width:1250px;margin:auto;flex-direction:column}
+.top{height:72px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;
+background:#0b1220dd;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:11px}.brandIcon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+background:linear-gradient(135deg,var(--accent),#3f8cff)}.brand b{font-size:16px}.brand small{display:block;color:var(--muted);margin-top:2px}
+.count{padding:7px 11px;border:1px solid #273650;border-radius:999px;color:#aeb9ca;font-size:12px;background:#10192a}
+.body{display:flex;flex:1;min-height:0}
+.list{width:330px;overflow:auto;background:#0a111e;border-right:1px solid var(--line)}
+.listHead{padding:14px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#0a111eee;backdrop-filter:blur(12px);z-index:2}
+.search{width:100%;padding:11px 13px;border:1px solid #263650;border-radius:12px;background:#10192a;color:#fff;outline:none}
+.search:focus{border-color:var(--accent)}
+.item{padding:14px 15px;border-bottom:1px solid #172339;cursor:pointer;transition:.16s}
+.item:hover{background:#101b2e}.item.active{background:linear-gradient(90deg,#1a2250,#121d31);box-shadow:inset 3px 0 var(--accent)}
+.itemTop{display:flex;align-items:center;gap:10px}.miniAv{width:38px;height:38px;flex:0 0 38px;border-radius:12px;display:grid;place-items:center;
+background:#1c2b45;color:#aebaff;font-weight:800}.itemText{min-width:0;flex:1}.item b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item small{display:block;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--online);box-shadow:0 0 10px #47d7a588}
+.thread{flex:1;display:flex;flex-direction:column;min-width:0;background:
+radial-gradient(700px 400px at 80% 0,#25205b22,transparent 60%),#09111f}
+.th{padding:13px 20px;min-height:68px;display:flex;align-items:center;gap:12px;background:#0d1726dd;
+backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.thAv{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:#1a2840;color:#b8c2ff;font-weight:800}
+.th b{font-size:15px}.th small{display:block;color:var(--online);margin-top:3px;font-size:11px}
+.msgs{flex:1;overflow:auto;padding:20px 22px;scroll-behavior:smooth}
+.empty{text-align:center;color:#65758e;margin-top:16vh}.emptyIcon{font-size:42px;margin-bottom:10px}.empty b{display:block;color:#aab6c9;margin-bottom:5px}
+.row{display:flex;margin:8px 0}.admin{justify-content:flex-end}
+.b{max-width:min(76%,620px);padding:11px 13px;border-radius:18px 18px 18px 6px;background:var(--bubble);
+border:1px solid #21324b;white-space:pre-wrap;word-break:break-word;line-height:1.42;box-shadow:0 5px 18px #0002}
+.admin .b{background:linear-gradient(135deg,#6259ed,#756dff);border:0;border-radius:18px 18px 6px 18px;box-shadow:0 8px 22px #635bff2b}
+.t{display:block;font-size:10px;opacity:.68;text-align:right;margin-top:5px}
+.compose{display:flex;gap:9px;padding:12px 16px;background:#0c1524ee;border-top:1px solid var(--line);backdrop-filter:blur(12px)}
+.compose input{flex:1;padding:13px 16px;border-radius:16px;border:1px solid #2a3b56;background:#101a2b;color:#fff;outline:none}
+.compose input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #6c63ff1c}
+.compose button{width:48px;height:48px;border:0;border-radius:15px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+color:#fff;font-size:19px;box-shadow:0 10px 25px #635bff33}
+@media(min-width:760px){.panel{height:94vh;margin:auto;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 30px 100px #0008}}
+@media(max-width:700px){
+  .list{width:100px}.listHead{padding:10px}.search{font-size:12px;padding:10px 7px}
+  .item{padding:10px 8px}.itemTop{gap:7px}.miniAv{width:34px;height:34px;flex-basis:34px;border-radius:10px;font-size:12px}
+  .itemText b{font-size:12px}.item small{display:none}.dot{display:none}.th{padding:10px 13px}.msgs{padding:14px 11px}.b{max-width:86%}
+}
+</style>
+</head>
+<body>
+<div class="login" id="login">
+  <div class="logo">🛡️</div><h2>Admin Messages</h2><p>Secure access to your conversations</p>
+  <input id="pass" type="password" placeholder="Admin password" autocomplete="current-password">
+  <button id="go">Sign in</button><div class="err" id="err"></div>
+</div>
+
+<div class="panel" id="panel">
+  <div class="top">
+    <div class="brand"><div class="brandIcon">💬</div><div><b>Admin Inbox</b><small>Message center</small></div></div>
+    <span class="count" id="count">0 chats</span>
+  </div>
+  <div class="body">
+    <aside class="list">
+      <div class="listHead"><input class="search" id="search" placeholder="Search chats..." autocomplete="off"></div>
+      <div id="list"></div>
+    </aside>
+    <main class="thread">
+      <div class="th"><div class="thAv" id="thAv">?</div><div><b id="title">Select a chat</b><small id="sub">Choose a conversation</small></div></div>
+      <div class="msgs" id="msgs"><div class="empty"><div class="emptyIcon">💭</div><b>No conversation selected</b><span>Select a user from the left</span></div></div>
+      <form class="compose" id="form"><input id="text" placeholder="Write a reply..." autocomplete="off"><button aria-label="Send">➤</button></form>
+    </main>
+  </div>
+</div>
+
 <script>
-let active=null,ref=null;const $=x=>document.getElementById(x),esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+let active=null,ref=null,chatData={};
+const $=x=>document.getElementById(x),esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const initial=s=>String(s||"U").trim().charAt(0).toUpperCase()||"U";
+
 $("go").onclick=async()=>{const p=$("pass").value;$("err").textContent="";if(!p)return $("err").textContent="Password enter karein";$("go").disabled=true;try{if(p!==await loadChatPassword("admin")){$("err").textContent="Wrong password";$("go").disabled=false;return}$("login").style.display="none";$("panel").style.display="flex";list()}catch(e){$("err").textContent="Login failed";$("go").disabled=false}};
-function list(){db.ref("chats").on("value",s=>{const d=s.val()||{},ks=Object.keys(d);$("count").textContent=ks.length+" chats";const box=$("list");box.innerHTML="";ks.sort((a,b)=>new Date(d[b].last_timestamp||0)-new Date(d[a].last_timestamp||0)).forEach(uid=>{const c=d[uid]||{},el=document.createElement("div");el.className="item"+(uid===active?" active":"");el.innerHTML=`<b>${esc(c.user_name||uid)}</b><small>${esc(c.last_message||"No messages yet")}</small>`;el.onclick=()=>open(uid,c.user_name||"User");box.appendChild(el)})})}
-function open(uid,name){active=uid;ref=db.ref("chats/"+uid);$("title").textContent=name;thread();list()}
-function thread(){ref.child("messages").on("value",s=>{const d=s.val()||{},box=$("msgs");box.innerHTML="";Object.keys(d).sort((a,b)=>new Date(d[a].timestamp)-new Date(d[b].timestamp)).forEach(k=>{const m=d[k],r=document.createElement("div");r.className="row "+(m.sender==="admin"?"admin":"");r.innerHTML=`<div class="b">${esc(m.text)}<span class="t">${new Date(m.timestamp).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span></div>`;box.appendChild(r)});box.scrollTop=box.scrollHeight;ref.update({admin_read_until:new Date().toISOString()})})}
+$("pass").addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click()});
+$("search").oninput=()=>renderList();
+
+function list(){db.ref("chats").on("value",s=>{chatData=s.val()||{};renderList()})}
+function renderList(){
+ const d=chatData,ks=Object.keys(d);$("count").textContent=ks.length+" chat"+(ks.length===1?"":"s");
+ const q=$("search").value.trim().toLowerCase(),box=$("list");box.innerHTML="";
+ ks.sort((a,b)=>new Date(d[b].last_timestamp||0)-new Date(d[a].last_timestamp||0)).filter(uid=>{
+   const c=d[uid]||{};return !q||String(c.user_name||uid).toLowerCase().includes(q)||String(c.last_message||"").toLowerCase().includes(q)
+ }).forEach(uid=>{
+   const c=d[uid]||{},name=c.user_name||uid,el=document.createElement("div");el.className="item"+(uid===active?" active":"");
+   el.innerHTML=`<div class="itemTop"><div class="miniAv">${esc(initial(name))}</div><div class="itemText"><b>${esc(name)}</b><small>${esc(c.last_message||"No messages yet")}</small></div><span class="dot"></span></div>`;
+   el.onclick=()=>open(uid,name);box.appendChild(el)
+ });
+ if(!box.children.length)box.innerHTML='<div style="padding:30px 15px;text-align:center;color:#65758e;font-size:12px">No chats found</div>';
+}
+function open(uid,name){active=uid;ref=db.ref("chats/"+uid);$("title").textContent=name;$("thAv").textContent=initial(name);$("sub").textContent="Conversation";thread();renderList();$("text").focus()}
+function thread(){ref.child("messages").on("value",s=>{const d=s.val()||{},box=$("msgs");box.innerHTML="";const keys=Object.keys(d).sort((a,b)=>new Date(d[a].timestamp)-new Date(d[b].timestamp));if(!keys.length){box.innerHTML='<div class="empty"><div class="emptyIcon">✨</div><b>No messages yet</b><span>Start the conversation below</span></div>'}keys.forEach(k=>{const m=d[k],r=document.createElement("div");r.className="row "+(m.sender==="admin"?"admin":"");r.innerHTML=`<div class="b">${esc(m.text)}<span class="t">${new Date(m.timestamp).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span></div>`;box.appendChild(r)});box.scrollTop=box.scrollHeight;ref.update({admin_read_until:new Date().toISOString()})})}
 $("form").onsubmit=async e=>{e.preventDefault();if(!ref)return;const i=$("text"),t=i.value.trim();if(!t)return;i.value="";const m={sender:"admin",text:t,timestamp:new Date().toISOString()};try{await ref.child("messages").push(m);await ref.update({last_message:t,last_sender:"admin",last_timestamp:m.timestamp})}catch(e){i.value=t;alert("Send nahi ho paya")}};
-</script></body></html>
+</script>
+</body></html>
