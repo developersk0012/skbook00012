@@ -1,6 +1,13 @@
-<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Panel - SK Education</title><script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script src="config.js"></script><style>
-
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SK Education</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <style>
         * {
             margin: 0;
             padding: 0;
@@ -991,7 +998,11 @@
    Visual/layout only. Existing Firebase + JS functionality kept.
    ========================================================= */
 @media (max-width: 768px) {
-  html, body { width:100% !important; height:100% !important; overflow:hidden !important; }
+  /* Pehle ye poore mobile par html/body scroll hamesha ke liye band kar
+     deta tha — isliye admin ka poora HOME PAGE bhi scroll nahi ho pa raha
+     tha. Ab sirf tab lock hota hai jab koi chat thread khula ho
+     (.chat-fullscreen-lock class JS se lagti/hatati hai). */
+  html.chat-fullscreen-lock, body.chat-fullscreen-lock { width:100% !important; height:100% !important; overflow:hidden !important; }
   #app { width:100% !important; min-height:100dvh !important; }
 
   /* When a conversation is opened, use the whole phone like announcements */
@@ -1325,21 +1336,837 @@
     }
 }
 
+</style>
 
-.simple-admin{display:none}.simple-admin .chat-layout{display:grid;grid-template-columns:300px 1fr;gap:20px}
-.simple-admin .user-list,.simple-admin .chat-card{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden}
-.simple-admin .user-list{max-height:calc(100vh - 190px);overflow:auto}.simple-admin .user-item{padding:15px;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer}.simple-admin .user-item.active,.simple-admin .user-item:hover{background:rgba(67,97,238,.14)}.simple-admin .user-item small{display:block;color:#a5b4fc;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.simple-admin .chat-card{height:calc(100vh - 190px);display:flex;flex-direction:column;min-height:420px}.simple-admin .chat-head{padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.06)}.simple-admin .chat-head small{display:block;color:#54e5c2;margin-top:4px}
-.simple-admin .msgs{flex:1;overflow:auto;padding:18px}.simple-admin .row{display:flex;margin:8px 0}.simple-admin .row.mine{justify-content:flex-end}.simple-admin .bubble{max-width:78%;padding:10px 13px;border-radius:16px 16px 16px 5px;background:#17283e;white-space:pre-wrap;word-break:break-word}.simple-admin .mine .bubble{background:#5d4be9;border-radius:16px 16px 5px 16px}.simple-admin .time{display:block;text-align:right;font-size:10px;opacity:.65;margin-top:4px}
-.simple-admin .compose{display:flex;gap:9px;padding:10px;background:rgba(255,255,255,.025);border-top:1px solid rgba(255,255,255,.06)}.simple-admin .compose input{flex:1;padding:13px 16px;border-radius:25px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05);color:#fff;outline:none}.simple-admin .compose button{width:50px;border:0;border-radius:50%;background:linear-gradient(135deg,#4361ee,#f72585);color:#fff}
-@media(max-width:700px){.simple-admin .chat-layout{grid-template-columns:105px 1fr;gap:10px}.simple-admin .user-item{padding:10px;font-size:13px}.simple-admin .user-item small{display:none}.simple-admin .chat-card{height:calc(100vh - 160px);min-height:0}}
-</style></head><body>
-<div id="adminLogin"><div class="admin-login"><div class="lock-icon">🔐</div><h2>Admin Panel</h2><p>Enter admin password</p><input id="adminPassword" type="password" placeholder="Admin password"><button id="adminGo">Login</button><div id="adminError" class="error"></div></div></div>
-<div id="adminApp" class="simple-admin"><div class="admin-container"><div class="admin-header"><div class="admin-header-left"><div class="logo-icon">SK</div><div><h2>Admin Messages</h2><small>Simple chat panel</small></div></div><div class="admin-header-right"><button class="logout-btn" id="logout">Logout</button></div></div><div class="admin-stats"><div class="admin-stat-card"><div class="admin-stat-value" id="chatCount">0</div><div class="admin-stat-label">Chats</div></div></div><div class="chat-layout"><div class="user-list" id="users"></div><div class="chat-card"><div class="chat-head"><b id="title">Select a chat</b><small>Choose a user</small></div><div id="msgs" class="msgs"></div><form id="form" class="compose"><input id="reply" placeholder="Type a message..." autocomplete="off"><button>➤</button></form></div></div></div></div>
+<style>
+/* FINAL COMPACT BUBBLE FIX — exactly like announcements */
+@media (max-width: 768px) {
+  .chat-layout.thread-open .chat-row {
+    align-items: flex-end !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  .chat-layout.thread-open .chat-bubble {
+    display: inline-block !important;
+    width: max-content !important;
+    max-width: 62% !important;
+    min-width: 0 !important;
+    height: fit-content !important;
+    max-height: fit-content !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    align-self: flex-end !important;
+    padding: 8px 10px 6px !important;
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    white-space: pre-line !important;
+    overflow: visible !important;
+  }
+  .chat-layout.thread-open .chat-row.from-user .chat-bubble {
+    align-self: flex-start !important;
+  }
+}
+@media (max-width: 420px) {
+  .chat-layout.thread-open .chat-bubble {
+    max-width: 65% !important;
+    font-size: 14px !important;
+  }
+}
+</style>
+
+</head>
+<body>
+    <div id="app">
+        <!-- ======================================== -->
+        <!-- ADMIN LOGIN -->
+        <!-- ======================================== -->
+        <div id="loginScreen" style="display:none;">
+            <div class="admin-login">
+                <div class="lock-icon">🔐</div>
+                <h2>Admin Login</h2>
+                <p>Enter admin password to continue</p>
+                <form id="adminLoginForm">
+                    <input type="password" id="adminPassword" placeholder="Enter password" required>
+                    <button type="submit">Login</button>
+                    <div id="loginError" class="error">Invalid password!</div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ======================================== -->
+        <!-- ADMIN PANEL -->
+        <!-- ======================================== -->
+        <div id="adminPanel" style="display:none;">
+            <div class="admin-container">
+                <!-- HEADER -->
+                <div class="admin-header">
+                    <div class="admin-header-left">
+                        <div class="logo-icon">SK</div>
+                        <div>
+                            <h2>🔐 Admin Panel</h2>
+                            <small>Manage your education platform</small>
+                        </div>
+                    </div>
+                    <div class="admin-header-right">
+                        <button type="button" class="admin-settings-gear" onclick="openAdminSettings()" title="Settings" aria-label="Settings">⚙️</button>
+                        <button onclick="logoutAdmin()" class="logout-btn">Logout</button>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="totalConversations">0</div>
+                        <div class="admin-stat-label">Active Conversations</div>
+                    </div>
+                </div>
+
+                <!-- TABS -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="showAdminTab('messages', this)">💬 Messages</button>
+                    <button class="admin-tab" onclick="showAdminTab('settings', this)">⚙️ Settings</button>
+                </div>
+
+                <!-- TAB: MESSAGES (WhatsApp-style live chat) -->
+                <div id="tab-messages" class="admin-tab-content active">
+                    <div class="chat-layout" id="chatLayout">
+                        <div class="chat-list-panel" id="chatListPanel">
+                            <div class="chat-list-header">💬 Conversations</div>
+                            <div id="chatList"><div class="empty-msg">Loading...</div></div>
+                        </div>
+                        <div class="chat-thread-panel">
+                            <div class="chat-thread-empty" id="chatThreadEmpty">
+                                <div style="font-size:50px;">💬</div>
+                                <p>Ek conversation select karein</p>
+                            </div>
+                            <div class="chat-thread-active" id="chatThreadActive" style="display:none;">
+                                <div class="chat-thread-header">
+                                    <button class="chat-back-btn" id="chatBackBtn">←</button>
+                                    <div>
+                                        <strong>💬 Chat with Wife 🥰</strong>
+                                        <small id="chatThreadUserName" style="display:block;color:#a5b4fc;font-size:12px;">User</small>
+                                        <small id="chatThreadPresence" style="display:block;font-size:11px;"></small>
+                                    </div>
+                                </div>
+                                <div class="chat-messages" id="chatMessages"></div>
+                                <div class="reply-preview-bar" id="adminReplyPreviewBar">
+                                    <div class="reply-preview-text" id="adminReplyPreviewText"></div>
+                                    <button class="reply-preview-cancel" id="adminReplyPreviewCancel">✕</button>
+                                </div>
+                                <div class="chat-input-bar">
+                                    <input type="text" id="chatLinkTitle" placeholder="🔗 Link title (optional)" class="chat-link-input">
+                                    <input type="url" id="chatLinkUrl" placeholder="🔗 Link URL (optional)" class="chat-link-input">
+                                    <div style="display:flex;gap:8px;">
+                                        <input type="text" id="chatReplyInput" placeholder="Type a message...">
+                                        <button id="chatSendBtn" class="chat-send-btn">➤</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: SETTINGS -->
+                <div id="tab-settings" class="admin-tab-content">
+                    <div class="admin-card">
+                        <h3>⚙️ Settings</h3>
+                        <div class="setting-item">
+                            <h4>🔧 Maintenance Mode</h4>
+                            <p>When enabled, users will see a maintenance page</p>
+                            <button id="maintenanceToggle" class="btn-warning" onclick="toggleMaintenance()">Turn ON</button>
+                            <div id="maintenanceStatus" style="margin-top:10px;color:#a5b4fc;">Current: OFF</div>
+                        </div>
+                        <div class="setting-item">
+                            <h4>💬 WhatsApp Channel Link</h4>
+                            <p>Ye link user panel mein "Join WhatsApp Channel" popup mein use hota hai. Isse change karne ke liye config.js mein WHATSAPP_GROUP_LINK edit karein.</p>
+                            <div style="color:#4cc9f0;font-size:13px;word-break:break-all;" id="waLinkDisplay"></div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3>🔑 Passwords</h3>
+                        <div class="setting-item">
+                            <h4>🔐 Admin Panel Password</h4>
+                            <p>Ye password admin panel aur developer panel dono ke login ke liye use hota hai. Badalne ke baad, agli baar login karte waqt naya password use karein.</p>
+                            <form id="adminPasswordForm" style="max-width:340px;">
+                                <input type="password" id="newAdminPassword" placeholder="Naya admin password" required minlength="4" style="margin-bottom:10px;">
+                                <button type="submit" class="btn-primary">💾 Admin Password Update Karein</button>
+                                <div id="adminPasswordSuccess" class="success-msg">✅ Admin password update ho gaya!</div>
+                            </form>
+                        </div>
+                        <div class="setting-item">
+                            <h4>💌 Message Page Password</h4>
+                            <p>Ye password users ke liye "Message" (chat) page unlock karne ke kaam aata hai.</p>
+                            <form id="announcePasswordForm" style="max-width:340px;">
+                                <input type="password" id="newAnnouncePassword" placeholder="Naya message page password" required minlength="4" style="margin-bottom:10px;">
+                                <button type="submit" class="btn-primary">💾 Message Password Update Karein</button>
+                                <div id="announcePasswordSuccess" class="success-msg">✅ Message password update ho gaya!</div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CHECK ADMIN LOGIN
+        // ========================================
+        const adminLoggedIn = sessionStorage.getItem('admin_logged_in');
+
+        if (adminLoggedIn === 'true') {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAdminData();
+        } else {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        // ========================================
+        // ADMIN LOGIN
+        // Password ab Firebase se check hota hai (hardcoded nahi),
+        // taaki Settings tab se ise reset kiya ja sake.
+        // ========================================
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            loadAdminPassword().then(function(correctPassword) {
+                submitBtn.disabled = false;
+                if (password === correctPassword) {
+                    sessionStorage.setItem('admin_logged_in', 'true');
+                    location.reload();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            }).catch(function(err) {
+                submitBtn.disabled = false;
+                console.error('Admin password check failed:', err);
+                document.getElementById('loginError').style.display = 'block';
+            });
+        });
+
+        // ========================================
+        // TAB SWITCHING
+        // ========================================
+        function showAdminTab(tab, el) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            document.querySelectorAll('.admin-tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        // ========================================
+        // MESSAGES — WhatsApp-style live chat
+        // Har user ke liye Firebase mein 'chats/<user_id>/messages' node
+        // hota hai. Yahan se admin conversation list dekh sakta hai,
+        // kisi bhi user ke thread mein jaake seedha reply kar sakta hai —
+        // user ke screen pe bina refresh kiye turant dikh jaata hai
+        // (Firebase realtime listener ki wajah se).
+        // ========================================
+        let chatsCache = {};
+        let activeChatUserId = null;
+        let activeChatListener = null;
+        let activePresenceListener = null;
+        let renderedKeys = new Set();
+
+        // Remove chat messages older than 24 hours without ever blocking rendering.
+        function pruneOldChatMessages(uid, messages) {
+            if (!messages) return;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (!m || !m.timestamp) return;
+                const t = new Date(m.timestamp).getTime();
+                if (Number.isFinite(t) && t < cutoff) {
+                    db.ref('chats/' + uid + '/messages/' + key).remove().catch(function(err) {
+                        console.warn('Old message cleanup failed:', err);
+                    });
+                }
+            });
+        }
+
+        // Purane (24hr se zyada) messages ko render se pehle hi filter kar dete
+        // hain, taaki wo pehle dikhein aur phir delete hote hi gayab ho jayein
+        // — is "flash then disappear" glitch ko fix karta hai.
+        function filterFreshMessages(messages) {
+            if (!messages) return messages;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            const fresh = {};
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (m && m.timestamp && new Date(m.timestamp).getTime() >= cutoff) {
+                    fresh[key] = m;
+                }
+            });
+            return fresh;
+        }
+
+        function loadChatList() {
+            db.ref('chats').on('value', function(snap) {
+                chatsCache = snap.val() || {};
+                renderChatList();
+                document.getElementById('totalConversations').textContent = Object.keys(chatsCache).length;
+            }, function(err) {
+                console.error('loadChatList error:', err);
+                document.getElementById('chatList').innerHTML = '<div class="empty-msg">❌ Error loading</div>';
+            });
+        }
+
+        function isUnread(d) {
+            if (d.last_sender !== 'user') return false;
+            if (!d.admin_read_until) return true;
+            return new Date(d.last_timestamp).getTime() > new Date(d.admin_read_until).getTime();
+        }
+
+        function renderChatList() {
+            const container = document.getElementById('chatList');
+            const entries = Object.keys(chatsCache).map(function(uid) {
+                return { uid: uid, data: chatsCache[uid] };
+            }).sort(function(a, b) {
+                return new Date(b.data.last_timestamp || 0) - new Date(a.data.last_timestamp || 0);
+            });
+
+            if (!entries.length) {
+                container.innerHTML = '<div class="empty-msg">Koi conversation nahi hai</div>';
+                return;
+            }
+
+            let html = '';
+            entries.forEach(function(entry) {
+                const d = entry.data;
+                const preview = (d.last_message || '').split(' ').slice(0, 6).join(' ');
+                const activeClass = entry.uid === activeChatUserId ? 'active' : '';
+                const unreadClass = isUnread(d) ? 'unread' : '';
+                const time = d.last_timestamp ? new Date(d.last_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                html += `
+                    <div class="chat-list-item ${activeClass} ${unreadClass}" onclick="openChatThread('${entry.uid}')">
+                        <span class="clu-time">${time}</span>
+                        <div class="clu-name">${d.online ? '<span class="clu-online-dot"></span>' : ''}${d.user_name || 'Unknown'}${isUnread(d) ? '<span class="clu-unread-badge"></span>' : ''}</div>
+                        <div class="clu-preview">${d.last_sender === 'admin' ? 'You: ' : ''}${preview}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function openChatThread(uid) {
+            const previousUid = activeChatUserId; // purana chat, jiska listener hatana hai
+            activeChatUserId = uid;
+            renderedKeys = new Set(); // naya thread — fresh render
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('chatLayout').classList.add('thread-open');
+            document.documentElement.classList.add('chat-fullscreen-lock');
+            document.body.classList.add('chat-fullscreen-lock');
+            document.getElementById('chatThreadEmpty').style.display = 'none';
+            document.getElementById('chatThreadActive').style.display = 'flex';
+            document.getElementById('chatThreadUserName').textContent = (chatsCache[uid] && chatsCache[uid].user_name) || 'User';
+            renderChatList();
+
+            // Purana thread listener hatao — SAHI uid aur SAHI path se, warna
+            // purana listener hamesha chalte rehta hai (listener leak), jo
+            // dheere-dheere site hang aur scroll-jump jaisi problems banata hai.
+            if (previousUid && activeChatListener) {
+                db.ref('chats/' + previousUid + '/messages').off('value', activeChatListener);
+            }
+            if (previousUid && activePresenceListener) {
+                db.ref('chats/' + previousUid).off('value', activePresenceListener);
+            }
+            activeChatListener = null;
+            activePresenceListener = null;
+
+            // PRESENCE + MARK AS READ — is chat node ko sunte hain taaki
+            // online/last-seen turant dikhe, aur jab bhi naya user
+            // message aaye (jabki admin thread khola hua hai), turant
+            // "read" mark ho jaye.
+            activePresenceListener = function(snap) {
+                const data = snap.val() || {};
+                currentChatMeta = data; // Seen details ke liye latest read timestamps yahin se lo.
+                renderPresence(data);
+                updateAdminMessageDetails();
+
+                if (data.last_sender === 'user' && activeChatUserId === uid) {
+                    const now = new Date().toISOString();
+                    if (!data.admin_read_until || new Date(data.last_timestamp) > new Date(data.admin_read_until)) {
+                        db.ref('chats/' + uid).update({ admin_read_until: now }).catch(function() {});
+                    }
+                }
+            };
+            db.ref('chats/' + uid).on('value', activePresenceListener);
+
+            activeChatListener = function(snap) {
+                try {
+                    const rawMessages = snap.val();
+                    pruneOldChatMessages(uid, rawMessages); // background cleanup, silent
+                    const messages = filterFreshMessages(rawMessages); // never render expired ones
+                    renderChatMessages(messages);
+                    markUserMessagesSeen(uid, messages);
+                } catch (err) {
+                    console.error('Admin chat render error:', err);
+                    document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">⚠️ Messages render nahi ho paaye. Retry karke dekhein.</div>';
+                }
+            };
+            db.ref('chats/' + uid + '/messages').on('value', activeChatListener, function(err) {
+                console.error('Admin chat load error:', err);
+                document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">❌ Messages load nahi ho paaye. Firebase/Internet check karein.</div>';
+            });
+        }
+
+        function markUserMessagesSeen(uid, messages) {
+            messages = messages || currentThreadMessages || {};
+            const userMessages = Object.keys(messages).filter(function(key) {
+                return messages[key] && messages[key].sender === 'user' && messages[key].timestamp;
+            });
+            if (!userMessages.length) return;
+
+            const latestUserTs = Math.max.apply(null, userMessages.map(function(key) {
+                return new Date(messages[key].timestamp).getTime();
+            }));
+            const alreadyRead = currentChatMeta && currentChatMeta.admin_read_until
+                ? new Date(currentChatMeta.admin_read_until).getTime() : 0;
+            if (latestUserTs <= alreadyRead) {
+                updateAdminMessageDetails();
+                return;
+            }
+
+            const seenAt = new Date().toISOString();
+            currentChatMeta.admin_read_until = seenAt;
+            db.ref('chats/' + uid).update({ admin_read_until: seenAt }).then(function() {
+                updateAdminMessageDetails();
+            }).catch(function(err) {
+                console.warn('Admin seen update failed:', err);
+            });
+        }
+
+        function renderPresence(data) {
+            const el = document.getElementById('chatThreadPresence');
+            if (!el) return;
+            if (data.online) {
+                el.textContent = '🟢 Online';
+                el.style.color = '#3ddc84';
+            } else if (data.last_seen) {
+                el.textContent = 'Last seen: ' + formatLastSeen(data.last_seen);
+                el.style.color = '#6a7a9e';
+            } else {
+                el.textContent = '';
+            }
+        }
+
+        let adminReplyingTo = null;
+        let currentThreadMessages = {};
+        let currentChatMeta = {};
+
+        function formatAdminMessageDateTime(ts) {
+            return new Date(ts).toLocaleString([], {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getAdminSeenTime(m) {
+            if (!m || !m.timestamp) return null;
+            const sent = new Date(m.timestamp).getTime();
+
+            if (m.sender === 'user' && currentChatMeta.admin_read_until) {
+                const read = new Date(currentChatMeta.admin_read_until).getTime();
+                if (sent <= read) return formatAdminMessageDateTime(currentChatMeta.admin_read_until);
+            }
+
+            if (m.sender === 'admin' && currentChatMeta.user_read_until) {
+                const read = new Date(currentChatMeta.user_read_until).getTime();
+                if (sent <= read) return formatAdminMessageDateTime(currentChatMeta.user_read_until);
+            }
+
+            return null;
+        }
+
+        function buildAdminBubbleHtml(key, m) {
+            const rowCls = m.sender === 'admin' ? 'from-admin' : 'from-user';
+            const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const quotePreview = m.reply_to ? (m.reply_to.length > 60 ? m.reply_to.slice(0, 60) + '…' : m.reply_to) : null;
+            const seenTime = getAdminSeenTime(m);
+
+            const details = `
+                <div class="admin-message-details" data-admin-details-key="${key}">
+                    <div>Sent: ${formatAdminMessageDateTime(m.timestamp)}</div>
+                    <div class="${seenTime ? 'seen' : 'not-seen'}">
+                        ${seenTime ? 'Seen: ' + seenTime : 'Not seen yet'}
+                    </div>
+                </div>`;
+
+            return `
+                <div class="chat-row ${rowCls}" id="admmsgrow-${key}">
+                    ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
+                    <div class="chat-bubble" onclick="toggleAdminMessageDetails(event, '${key}')">
+                        ${quotePreview ? `<div class="cb-quote">${quotePreview}</div>` : ''}
+                        <div>${m.text}</div>
+                        ${m.link_url ? `<div><a href="${m.link_url}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${m.link_title || 'Open Link'}</a></div>` : ''}
+                        <div class="cb-time">${time}</div>
+                        ${details}
+                    </div>
+                    ${rowCls === 'from-user' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
+                </div>
+            `;
+        }
+
+        function toggleAdminMessageDetails(event, key) {
+            event.stopPropagation();
+            const bubble = document.querySelector('#admmsgrow-' + key + ' .chat-bubble');
+            if (!bubble) return;
+
+            document.querySelectorAll('.chat-bubble.details-open').forEach(function(el) {
+                if (el !== bubble) el.classList.remove('details-open');
+            });
+
+            bubble.classList.toggle('details-open');
+        }
+
+        function updateAdminMessageDetails() {
+            const messages = currentThreadMessages || {};
+            Object.keys(messages).forEach(function(key) {
+                const info = document.querySelector('.admin-message-details[data-admin-details-key="' + key + '"]');
+                if (!info) return;
+
+                const seenTime = getAdminSeenTime(messages[key]);
+                info.innerHTML =
+                    '<div>Sent: ' + formatAdminMessageDateTime(messages[key].timestamp) + '</div>' +
+                    '<div class="' + (seenTime ? 'seen' : 'not-seen') + '">' +
+                    (seenTime ? 'Seen: ' + seenTime : 'Not seen yet') +
+                    '</div>';
+            });
+        }
+
+        function renderChatMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            currentThreadMessages = messages || {};
+
+            if (!messages) {
+                container.innerHTML = '<div class="empty-msg">Abhi koi message nahi</div>';
+                renderedKeys.clear();
+                return;
+            }
+
+            const emptyState = container.querySelector('.empty-msg');
+            if (emptyState) container.innerHTML = '';
+
+            const keys = Object.keys(messages).sort(function(a, b) {
+                return new Date(messages[a].timestamp) - new Date(messages[b].timestamp);
+            });
+
+            let appended = false;
+            keys.forEach(function(key) {
+                if (renderedKeys.has(key)) return;
+                renderedKeys.add(key);
+                container.insertAdjacentHTML('beforeend', buildAdminBubbleHtml(key, messages[key]));
+                appended = true;
+            });
+
+            renderedKeys.forEach(function(key) {
+                if (!messages[key]) {
+                    const el = document.getElementById('admmsgrow-' + key);
+                    if (el) el.remove();
+                    renderedKeys.delete(key);
+                }
+            });
+
+            if (appended) container.scrollTop = container.scrollHeight;
+            updateAdminMessageDetails();
+        }
+
+        function setAdminReply(key) {
+            const m = currentThreadMessages[key];
+            if (!m) return;
+            adminReplyingTo = m.text;
+            const preview = m.text.length > 70 ? m.text.slice(0, 70) + '…' : m.text;
+            document.getElementById('adminReplyPreviewText').textContent = '↩️ ' + preview;
+            document.getElementById('adminReplyPreviewBar').classList.add('show');
+            document.getElementById('chatReplyInput').focus();
+        }
+
+        document.getElementById('adminReplyPreviewCancel').addEventListener('click', function() {
+            adminReplyingTo = null;
+            document.getElementById('adminReplyPreviewBar').classList.remove('show');
+        });
+
+        document.getElementById('chatBackBtn').addEventListener('click', function() {
+            document.getElementById('chatLayout').classList.remove('thread-open');
+            document.documentElement.classList.remove('chat-fullscreen-lock');
+            document.body.classList.remove('chat-fullscreen-lock');
+        });
+
+        function sendAdminReply() {
+            if (!activeChatUserId) return;
+            const input = document.getElementById('chatReplyInput');
+            const text = input.value.trim();
+            const linkTitle = document.getElementById('chatLinkTitle').value.trim();
+            const linkUrl = document.getElementById('chatLinkUrl').value.trim();
+
+            if (!text) {
+                showToast('Kuch likhein!', 'error');
+                return;
+            }
+            if ((linkTitle && !linkUrl) || (!linkTitle && linkUrl)) {
+                showToast('Link ke liye Title aur URL dono bharein!', 'error');
+                return;
+            }
+
+            const msgData = {
+                sender: 'admin',
+                text: text,
+                timestamp: new Date().toISOString()
+            };
+            if (linkTitle && linkUrl) {
+                msgData.link_title = linkTitle;
+                msgData.link_url = linkUrl;
+            }
+            if (adminReplyingTo) {
+                msgData.reply_to = adminReplyingTo;
+            }
+
+            const uid = activeChatUserId;
+            db.ref('chats/' + uid + '/messages').push(msgData).then(function() {
+                return db.ref('chats/' + uid).update({
+                    last_message: text,
+                    last_sender: 'admin',
+                    last_timestamp: msgData.timestamp
+                });
+            }).then(function() {
+                input.value = '';
+                document.getElementById('chatLinkTitle').value = '';
+                document.getElementById('chatLinkUrl').value = '';
+                adminReplyingTo = null;
+                document.getElementById('adminReplyPreviewBar').classList.remove('show');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Send nahi ho paya', 'error');
+            });
+        }
+
+        document.getElementById('chatSendBtn').addEventListener('click', sendAdminReply);
+        document.getElementById('chatReplyInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendAdminReply();
+        });
+
+        // ========================================
+        // LOAD ADMIN DATA
+        // ========================================
+        function loadAdminData() {
+            loadChatList();
+            loadStats();
+            setupAdminPresence();
+            document.getElementById('waLinkDisplay').textContent = WHATSAPP_GROUP_LINK;
+        }
+
+        // Admin ka online/last-seen status — users ko unke chat header
+        // mein dikhta hai (ek hi admin hai, isliye global node)
+        function setupAdminPresence() {
+            const adminPresenceRef = db.ref('admin_presence');
+            db.ref('.info/connected').on('value', function(snap) {
+                if (snap.val() === false) return;
+                adminPresenceRef.onDisconnect().update({ online: false, last_seen: new Date().toISOString() }).then(function() {
+                    adminPresenceRef.update({ online: true });
+                });
+            });
+        }
+
+        // ========================================
+        // LOAD STATS
+        // ========================================
+        function loadStats() {
+            // Maintenance status
+            db.ref('settings/maintenance').on('value', function(snap) {
+                const status = snap.val() === 'on' ? 'ON' : 'OFF';
+                document.getElementById('maintenanceStatus').textContent = 'Current: ' + status;
+                document.getElementById('maintenanceToggle').textContent = status === 'ON' ? 'Turn OFF' : 'Turn ON';
+                document.getElementById('maintenanceToggle').className = status === 'ON' ? 'btn-success' : 'btn-warning';
+            });
+        }
+
+        // ========================================
+        // TOGGLE MAINTENANCE
+        // ========================================
+        function toggleMaintenance() {
+            db.ref('settings/maintenance').once('value').then(function(snap) {
+                const current = snap.val() === 'on' ? 'off' : 'on';
+                return db.ref('settings/maintenance').set(current);
+            }).then(function() {
+                showToast('✅ Maintenance mode updated');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        }
+
+        // ========================================
+        // CHANGE PASSWORDS
+        // ========================================
+        document.getElementById('adminPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newAdminPassword').value.trim();
+            if (newPass.length < 4) {
+                showToast('Password kam se kam 4 characters ka hona chahiye', 'error');
+                return;
+            }
+            updateAdminPassword(newPass).then(function() {
+                document.getElementById('adminPasswordSuccess').style.display = 'block';
+                setTimeout(() => document.getElementById('adminPasswordSuccess').style.display = 'none', 3000);
+                document.getElementById('adminPasswordForm').reset();
+                showToast('✅ Admin password update ho gaya!');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        });
+
+        document.getElementById('announcePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newAnnouncePassword').value.trim();
+            if (newPass.length < 4) {
+                showToast('Password kam se kam 4 characters ka hona chahiye', 'error');
+                return;
+            }
+            updateAnnouncementPassword(newPass).then(function() {
+                document.getElementById('announcePasswordSuccess').style.display = 'block';
+                setTimeout(() => document.getElementById('announcePasswordSuccess').style.display = 'none', 3000);
+                document.getElementById('announcePasswordForm').reset();
+                showToast('✅ Message page password update ho gaya!');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        });
+
+        // ========================================
+        // LOGOUT ADMIN
+        // ========================================
+        function logoutAdmin() {
+            db.ref('admin_presence').update({
+                online: false,
+                last_seen: new Date().toISOString()
+            }).catch(function() {}).finally(function() {
+                sessionStorage.removeItem('admin_logged_in');
+                location.reload();
+            });
+        }
+
+        // ========================================
+        // EXPOSE FUNCTIONS
+        // ========================================
+        window.openChatThread = openChatThread;
+        window.setAdminReply = setAdminReply;
+        window.toggleMaintenance = toggleMaintenance;
+        window.logoutAdmin = logoutAdmin;
+        window.showAdminTab = showAdminTab;
+    </script>
 <script>
-let active=null,ref=null;const $=x=>document.getElementById(x),esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-$("adminGo").onclick=async()=>{const p=$("adminPassword").value.trim();$("adminError").textContent="";if(!p)return $("adminError").textContent="Password enter karein";if(p!==await loadChatPassword("admin"))return $("adminError").textContent="Wrong password";$("adminLogin").style.display="none";$("adminApp").style.display="block";loadUsers()};
-function loadUsers(){db.ref("chats").on("value",s=>{const d=s.val()||{},ks=Object.keys(d);$("chatCount").textContent=ks.length;$("users").innerHTML="";ks.sort((a,b)=>new Date(d[b].last_timestamp||0)-new Date(d[a].last_timestamp||0)).forEach(u=>{const c=d[u]||{},x=document.createElement("div");x.className="user-item "+(u===active?"active":"");x.innerHTML=`<b>${esc(c.user_name||u)}</b><small>${esc(c.last_message||"No messages yet")}</small>`;x.onclick=()=>openUser(u,c.user_name||"User");$("users").appendChild(x)})})}
-function openUser(u,n){active=u;ref=db.ref("chats/"+u);$("title").textContent=n;ref.child("messages").off();ref.child("messages").on("value",s=>{const d=s.val()||{},b=$("msgs");b.innerHTML="";Object.keys(d).sort((a,b)=>new Date(d[a].timestamp)-new Date(d[b].timestamp)).forEach(k=>{const m=d[k],r=document.createElement("div");r.className="row "+(m.sender==="admin"?"mine":"");r.innerHTML=`<div class="bubble">${esc(m.text)}<span class="time">${new Date(m.timestamp).toLocaleTimeString([] ,{hour:"2-digit",minute:"2-digit"})} ${m.sender==="admin"?"✓✓":""}</span></div>`;b.appendChild(r)});b.scrollTop=b.scrollHeight;ref.update({admin_read_until:new Date().toISOString()})})}
-$("form").onsubmit=async e=>{e.preventDefault();if(!ref)return;const i=$("reply"),t=i.value.trim();if(!t)return;i.value="";const m={sender:"admin",text:t,timestamp:new Date().toISOString()};await ref.child("messages").push(m);await ref.update({last_message:t,last_sender:"admin",last_timestamp:m.timestamp})};$("logout").onclick=()=>location.reload();
-</script></body></html>
+function openAdminSettings(){
+    const settingsTab=document.querySelector('.admin-tabs .admin-tab[onclick*="settings"]');
+    if(settingsTab){showAdminTab('settings',settingsTab);}
+}
+window.openAdminSettings=openAdminSettings;
+</script>
+
+</body>
+</html>
+<style>
+/* ===== LAST FIX: truly compact message bubbles ===== */
+#chatLayout.thread-open .chat-row{
+  display:flex !important;
+  align-items:flex-end !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  margin:6px 0 !important;
+}
+#chatLayout.thread-open .chat-bubble{
+  display:inline-flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  flex:0 1 auto !important;
+  width:auto !important;
+  max-width:68% !important;
+  min-width:0 !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:8px 10px 6px !important;
+  margin:0 !important;
+  font-size:14px !important;
+  line-height:1.35 !important;
+  white-space:pre-line !important;
+  overflow:visible !important;
+  word-break:break-word !important;
+  overflow-wrap:anywhere !important;
+}
+#chatLayout.thread-open .chat-row.from-user .chat-bubble{
+  align-self:flex-start !important;
+  width:auto !important;
+}
+#chatLayout.thread-open .chat-row.from-admin .chat-bubble{
+  align-self:flex-end !important;
+  width:auto !important;
+}
+/* Details never stretch the bubble itself */
+#chatLayout.thread-open .admin-message-details{
+  display:none !important;
+  width:auto !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  flex:none !important;
+}
+#chatLayout.thread-open .chat-bubble.details-open .admin-message-details{
+  display:block !important;
+}
+/* Keep the message text natural width */
+#chatLayout.thread-open .chat-bubble > div:not(.cb-quote):not(.admin-message-details):not(:has(a)){
+  width:auto !important;
+  max-width:100% !important;
+}
+@media(max-width:420px){
+  #chatLayout.thread-open .chat-bubble{
+    max-width:68% !important;
+    padding:8px 10px 6px !important;
+    font-size:14px !important;
+  }
+}
+
+/* =========================================================
+   FINAL SCROLL FIX
+   Bahut saare purane CSS blocks upar overflow/height set kar rahe
+   the aur ek-dusre ko override kar rahe the, jiski wajah se
+   scroll kaam nahi kar raha tha. Ye aakhri, sabse zyada priority
+   wala rule hai — hamesha jeetega aur scroll guaranteed rakhega.
+   ========================================================= */
+.chat-thread-panel{
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.chat-thread-active{
+  display:flex !important;
+  flex-direction:column !important;
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.chat-messages,
+#chatLayout.thread-open .chat-messages{
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  overflow-y:auto !important;
+  overflow-x:hidden !important;
+  -webkit-overflow-scrolling:touch !important;
+}
+</style>

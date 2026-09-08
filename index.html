@@ -1,968 +1,146 @@
-<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Message - SK Education</title><script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script><script src="config.js"></script><style>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Education - Chat</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3e 50%, #2d1b69 100%); min-height: 100vh; color: white; }
 
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#07111f;
-  --panel:#0b1728;
-  --panel2:#111f33;
-  --text:#eef4ff;
-  --muted:#8fa0b7;
-  --line:rgba(255,255,255,.08);
-  --bubble:#17283e;
-  --mine:#5d4be9;
-  --accent:#7564ff;
-  --online:#54e5c2;
-}
-html,body{width:100%;height:100%;overflow:hidden}
-body{
-  min-height:100vh;
-  background:#07111f;
-  color:var(--text);
-  font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
-  -webkit-font-smoothing:antialiased;
-}
+        #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .login-container { max-width: 420px; width: 100%; padding: 45px 35px; background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.4); animation: fadeIn 0.6s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .login-logo { font-size: 60px; text-align: center; margin-bottom: 10px; }
+        .login-title { font-size: 28px; font-weight: 700; text-align: center; background: linear-gradient(90deg, #4cc9f0, #f72585); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
+        .login-subtitle { color: #a5b4fc; text-align: center; font-size: 15px; margin-bottom: 25px; }
+        .login-input-group { margin-bottom: 18px; }
+        .login-input-group label { display: block; color: #a5b4fc; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+        .login-input-group input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-size: 16px; transition: all 0.3s ease; }
+        .login-input-group input:focus { outline: none; border-color: #4361ee; background: rgba(255,255,255,0.08); box-shadow: 0 0 0 4px rgba(67,97,238,0.15); }
+        .login-input-group input::placeholder { color: #4a5a7a; }
+        .login-btn { width: 100%; padding: 16px; background: linear-gradient(90deg, #4361ee, #f72585); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; margin-top: 5px; }
+        .login-btn:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(67,97,238,0.35); }
+        .login-btn:active { transform: scale(0.98); }
+        .login-error { color: #f72585; margin-top: 12px; text-align: center; font-size: 14px; display: none; }
 
-/* ===== PASSWORD LOCK ===== */
-#lockScreen{
-  position:fixed;inset:0;z-index:1000;
-  display:flex;align-items:center;justify-content:center;
-  padding:20px;
-  background:
-    radial-gradient(circle at 20% 10%,rgba(117,100,255,.22),transparent 32%),
-    radial-gradient(circle at 85% 90%,rgba(45,212,191,.10),transparent 28%),
-    #07111f;
-}
-.lock-container{
-  width:min(100%,390px);
-  padding:30px 24px;
-  border:1px solid var(--line);
-  border-radius:24px;
-  background:rgba(13,27,46,.94);
-  box-shadow:0 25px 80px rgba(0,0,0,.45);
-  text-align:center;
-}
-.lock-icon{font-size:46px;margin-bottom:12px}
-.lock-container h2{font-size:22px;margin-bottom:7px}
-.lock-container p{font-size:13px;color:var(--muted);margin-bottom:20px}
-#unlockForm{display:flex;flex-direction:column;gap:10px}
-#unlockPassword{
-  width:100%;height:48px;padding:0 15px;
-  border-radius:14px;border:1px solid var(--line);
-  background:#101e32;color:white;outline:none;font-size:15px;
-}
-.lock-btn{
-  height:48px;border:0;border-radius:14px;
-  background:linear-gradient(135deg,#7564ff,#5143d8);
-  color:white;font-weight:700;font-size:15px;
-}
-.lock-error{display:none;color:#ff8f9f;font-size:12px}
-.lock-back-link{display:inline-block;margin-top:16px;color:#aebbd0;text-decoration:none;font-size:12px}
+        #mainApp { display: none; }
+        .main-container { max-width: 700px; margin: 0 auto; padding: 20px 25px 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 25px; background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 30px; flex-wrap: wrap; gap: 12px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #4361ee, #f72585); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: white; }
+        .header-left h2 { font-size: 20px; color: white; margin: 0; }
+        .header-left small { color: #a5b4fc; font-size: 13px; display: block; }
+        .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .user-badge { background: rgba(67,97,238,0.2); padding: 6px 18px; border-radius: 50px; font-size: 14px; color: #a5b4fc; border: 1px solid rgba(67,97,238,0.15); }
+        .logout-link { background: none; border: none; color: #f72585; font-size: 13px; cursor: pointer; padding: 6px 12px; border-radius: 50px; transition: 0.3s; }
+        .logout-link:hover { background: rgba(247,37,133,0.15); }
 
-/* ===== MAIN CHAT ===== */
-#chatApp{
-  width:100%;
-  height:100dvh;
-  min-height:100vh;
-  display:none;
-  flex-direction:column;
-  background:
-    radial-gradient(circle at 20% 8%,rgba(117,100,255,.07),transparent 25%),
-    #07111f;
-}
+        .chat-entry-card { display: flex; align-items: center; gap: 18px; background: rgba(255,255,255,0.04); backdrop-filter: blur(8px); border-radius: 18px; padding: 25px; border: 1px solid rgba(255,255,255,0.06); text-decoration: none; color: white; transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+        .chat-entry-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,0.4); border-color: rgba(67,97,238,0.3); }
+        .chat-entry-icon { width: 70px; height: 70px; border-radius: 18px; background: linear-gradient(135deg, #4361ee, #f72585); display: flex; align-items: center; justify-content: center; font-size: 34px; flex-shrink: 0; }
+        .chat-entry-info h3 { font-size: 19px; margin-bottom: 4px; }
+        .chat-entry-info p { color: #a5b4fc; font-size: 14px; }
 
-/* Header like the 1st screenshot */
-#chatApp>.header{
-  flex:0 0 82px;
-  height:82px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:10px 18px;
-  background:rgba(12,23,40,.96);
-  border-bottom:1px solid var(--line);
-  backdrop-filter:blur(18px);
-  box-shadow:0 4px 20px rgba(0,0,0,.12);
-}
-.header-left{
-  min-width:0;
-  flex:1;
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-.header-left:before{
-  content:"‹";
-  display:grid;
-  place-items:center;
-  width:34px;height:42px;
-  color:#dce5f3;
-  font-size:40px;
-  line-height:1;
-  font-weight:300;
-}
-.logo-icon{display:none}
-.header-left>div:last-child{min-width:0}
-.header-left h2{
-  font-size:21px;
-  line-height:1.1;
-  font-weight:800;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  font-size:0;
-}
-.header-left h2:after{
-  content:"SK Education";
-  font-size:20px;
-}
-.header-left small{
-  display:block;
-  margin-top:6px;
-  color:var(--online);
-  font-size:12px;
-  font-weight:600;
-}
-.header-right{
-  display:flex;
-  align-items:center;
-  gap:7px;
-}
-#userDisplay{
-  display:none!important;
-}
-.icon-btn{
-  width:42px;height:42px;
-  display:grid;place-items:center;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:rgba(255,255,255,.035);
-  color:#c8d3e2;
-  text-decoration:none;
-  font-size:20px;
-}
-.header-right .logout-link{
-  width:42px;height:42px;
-  overflow:hidden;
-  font-size:0;
-  border:1px solid var(--line);
-  border-radius:14px;
-  background:rgba(255,255,255,.035);
-  color:#c8d3e2;
-  cursor:pointer;
-}
-.header-right .logout-link:after{
-  content:"⋮";
-  font-size:25px;
-  line-height:1;
-}
+        @media (max-width: 768px) {
+            .main-container { padding: 15px; }
+            .login-container { padding: 30px 20px; margin: 0 10px; }
+            .login-title { font-size: 24px; }
+            .header { padding: 12px 16px; flex-direction: column; align-items: stretch; gap: 10px; }
+            .header-right { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
 
-/* Message area */
-.chat-messages{
-  flex:1;
-  min-height:0;
-  overflow-y:auto;
-  overflow-x:hidden;
-  padding:18px 20px 18px;
-  scroll-behavior:smooth;
-  overscroll-behavior:contain;
-  background:
-    radial-gradient(circle at 30% 25%,rgba(117,100,255,.045),transparent 28%),
-    linear-gradient(180deg,#07111f 0%,#06101d 100%);
-}
-.chat-messages::-webkit-scrollbar{width:4px}
-.chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:20px}
+    <!-- ===== LOGIN ===== -->
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="login-logo">📚</div>
+            <h2 class="login-title">Welcome to SK Education</h2>
+            <p class="login-subtitle">Enter your name to start chatting</p>
+            <form id="loginForm">
+                <div class="login-input-group">
+                    <label>👤 Your Name</label>
+                    <input type="text" id="loginName" placeholder="Enter your full name" required>
+                </div>
+                <button type="submit" class="login-btn">🚀 Continue</button>
+                <div id="loginError" class="login-error"></div>
+            </form>
+        </div>
+    </div>
 
-.chat-row{
-  display:flex;
-  align-items:flex-end;
-  width:100%;
-  margin:9px 0;
-  gap:4px;
-  animation:msgIn .16s ease-out both;
-}
-.chat-row.from-admin{justify-content:flex-start}
-.chat-row.from-user{justify-content:flex-end}
+    <!-- ===== MAIN APP ===== -->
+    <div id="mainApp">
+        <div class="main-container">
 
-@keyframes msgIn{
-  from{opacity:.55;transform:translateY(4px)}
-  to{opacity:1;transform:translateY(0)}
-}
+            <div class="header">
+                <div class="header-left">
+                    <div class="logo-icon">SK</div>
+                    <div>
+                        <h2>SK Education</h2>
+                        <small>Chat Support</small>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span class="user-badge" id="userDisplay">👋 User</span>
+                    <button onclick="logout()" class="logout-link">Logout</button>
+                </div>
+            </div>
 
-.chat-bubble{
-  display:block;
-  width:fit-content;
-  max-width:min(78%,500px);
-  min-width:0;
-  padding:10px 13px 7px;
-  border-radius:18px 18px 18px 6px;
-  background:var(--bubble);
-  border:1px solid rgba(255,255,255,.055);
-  color:#edf3fc;
-  font-size:15px;
-  line-height:1.42;
-  overflow-wrap:anywhere;
-  box-shadow:0 6px 20px rgba(0,0,0,.12);
-}
-.from-user .chat-bubble{
-  background:linear-gradient(135deg,#6655f2,#5545dc);
-  border-color:rgba(255,255,255,.08);
-  border-radius:18px 18px 6px 18px;
-}
-.cb-time{
-  margin-top:4px;
-  text-align:right;
-  font-size:10px;
-  line-height:1;
-  color:rgba(255,255,255,.52);
-  white-space:nowrap;
-}
-.from-user .cb-time{color:rgba(255,255,255,.74)}
-.cb-tick{margin-left:5px;font-size:13px;letter-spacing:-2px}
-.cb-tick.read{color:#8feaff}
-.cb-quote{
-  margin:-1px 0 7px;
-  padding:7px 9px;
-  border-left:3px solid #887bff;
-  border-radius:8px;
-  background:rgba(0,0,0,.16);
-  color:#bdc8da;
-  font-size:11px;
-  line-height:1.35;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.from-user .cb-quote{background:rgba(0,0,0,.12);color:#e1e6f2}
-.cb-link{
-  display:inline-block;
-  margin-top:6px;
-  color:#b8eaff;
-  text-decoration:none;
-  font-size:12px;
-  word-break:break-all;
-}
+            <a href="chat.html" class="chat-entry-card">
+                <div class="chat-entry-icon">💬</div>
+                <div class="chat-entry-info">
+                    <h3>Message / Chat</h3>
+                    <p>Admin se seedha baat karein — realtime chat</p>
+                </div>
+            </a>
 
-/* Keep reply functionality, but don't clutter the UI */
-.reply-icon-btn{
-  flex:0 0 1px;
-  width:1px;height:1px;
-  opacity:0;
-  border:0;background:transparent;
-  overflow:hidden;
-  padding:0;margin:0;
-}
+        </div>
+    </div>
 
-/* Empty/loading states */
-.chat-loading,.chat-empty-state{
-  min-height:100%;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  color:var(--muted);
-  text-align:center;
-  font-size:13px;
-}
-.chat-empty-state .icon{font-size:28px}
-.spinner{
-  width:28px;height:28px;
-  border:3px solid rgba(255,255,255,.12);
-  border-top-color:#7564ff;
-  border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
+    <script>
+    const userName = getUserName();
 
-/* Reply preview */
-.reply-preview-bar{
-  display:none;
-  flex:0 0 auto;
-  align-items:center;
-  gap:8px;
-  padding:8px 13px;
-  background:#0e1b2e;
-  border-top:1px solid var(--line);
-}
-.reply-preview-bar.show{display:flex}
-.reply-preview-text{
-  flex:1;
-  min-width:0;
-  padding:7px 9px;
-  border-left:3px solid var(--accent);
-  border-radius:8px;
-  background:rgba(117,100,255,.09);
-  color:#bac7da;
-  font-size:11px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.reply-preview-cancel{
-  width:30px;height:30px;border:0;
-  border-radius:9px;background:rgba(255,255,255,.05);
-  color:#aebbd0;font-size:14px;
-}
-
-/* Composer like the 1st screenshot */
-.chat-input-bar{
-  flex:0 0 auto;
-  display:flex;
-  align-items:center;
-  gap:9px;
-  padding:10px 18px 12px;
-  background:rgba(10,23,39,.98);
-  border-top:1px solid var(--line);
-  box-shadow:0 -8px 28px rgba(0,0,0,.12);
-}
-.chat-photo-btn{
-  flex:0 0 48px;
-  width:48px;height:48px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#101e32;
-  color:#c2cede;
-  font-size:22px;
-  cursor:pointer;
-}
-#chatTextInput{
-  flex:1;
-  min-width:0;
-  height:48px;
-  padding:0 15px;
-  border:1px solid var(--line);
-  border-radius:17px;
-  background:#101e32;
-  color:#f4f7fb;
-  outline:none;
-  font-size:15px;
-}
-#chatTextInput::placeholder{color:#71829a}
-#chatTextInput:focus{
-  border-color:rgba(117,100,255,.55);
-  box-shadow:0 0 0 3px rgba(117,100,255,.08);
-}
-.chat-send-btn{
-  flex:0 0 48px;
-  width:48px;height:48px;
-  border:0;border-radius:16px;
-  color:white;
-  font-size:23px;
-  background:linear-gradient(135deg,#7564ff,#5143db);
-  box-shadow:0 9px 24px rgba(117,100,255,.25);
-  cursor:pointer;
-}
-.chat-send-btn:active,.chat-photo-btn:active{transform:scale(.96)}
-.chat-send-btn:disabled,.chat-photo-btn:disabled{opacity:.55}
-
-/* A small TODAY / private-conversation visual at the top */
-.chat-messages:before{
-  content:"TODAY";
-  display:block;
-  width:max-content;
-  margin:2px auto 22px;
-  color:#72839a;
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:.3px;
-}
-.chat-messages:after{
-  content:"";
-  display:block;
-  height:1px;
-}
-
-/* Desktop: keep the chat centered and premium */
-@media(min-width:700px){
-  body{padding:0}
-  #chatApp{
-    width:min(100%,700px);
-    margin:0 auto;
-    border-left:1px solid var(--line);
-    border-right:1px solid var(--line);
-    box-shadow:0 0 70px rgba(0,0,0,.28);
-  }
-  .chat-bubble{max-width:68%}
-}
-
-/* Mobile: match the screenshot proportions */
-@media(max-width:450px){
-  #chatApp{height:100dvh;min-height:100vh}
-  #chatApp>.header{height:82px;flex-basis:82px;padding:10px 15px}
-  .header-left h2:after{font-size:19px}
-  .header-left small{font-size:11px;margin-top:5px}
-  .icon-btn,.header-right .logout-link{width:40px;height:40px;border-radius:13px}
-  .chat-messages{padding:18px 20px 16px}
-  .chat-bubble{
-    max-width:82%;
-    font-size:15px;
-    padding:10px 13px 7px;
-  }
-  .chat-row{margin:8px 0}
-  .chat-input-bar{padding:9px 19px 11px;gap:9px}
-  .chat-photo-btn,.chat-send-btn{width:48px;height:48px;flex-basis:48px}
-}
-
-
-/* ===== WhatsApp-style tap-to-show message details ===== */
-.chat-row{height:auto!important;min-height:0!important;align-items:flex-end!important}
-.chat-bubble{
-  width:fit-content!important;
-  max-width:min(78%,420px)!important;
-  min-width:0!important;
-  height:auto!important;
-  min-height:0!important;
-  flex:0 0 auto!important;
-  cursor:pointer!important;
-}
-.chat-bubble .cb-time{display:none!important}
-.message-details{
-  display:none;
-  margin-top:6px;
-  padding-top:5px;
-  border-top:1px solid rgba(255,255,255,.10);
-  font-size:9px;
-  line-height:1.5;
-  color:rgba(255,255,255,.68);
-  text-align:right;
-  white-space:normal;
-}
-.chat-bubble.details-open .message-details{display:block}
-.message-details .seen{color:#8feaff}
-.message-details .not-seen{color:#aebbd0}
-@media(max-width:480px){
-  .chat-bubble{max-width:80%!important}
-  .message-details{font-size:9px}
-}
-
-
-/* =========================================================
-   FINAL MOBILE CHAT FIX
-   - Full phone viewport
-   - Header always visible
-   - Composer always visible
-   - Compact WhatsApp-style bubbles
-   - Tap bubble -> Sent/Seen details
-   ========================================================= */
-
-html, body {
-    width: 100%;
-    height: 100%;
-    min-height: 100%;
-    overflow: hidden !important;
-}
-
-body {
-    margin: 0 !important;
-    background: #07111f !important;
-}
-
-#chatApp {
-    width: 100% !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-
-/* Header: don't let it get pushed/cut */
-#chatApp > .header {
-    flex: 0 0 82px !important;
-    height: 82px !important;
-    min-height: 82px !important;
-    max-height: 82px !important;
-}
-
-/* Messages take ONLY the middle space */
-.chat-messages {
-    flex: 1 1 auto !important;
-    min-height: 0 !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    padding: 16px 18px 14px !important;
-    scroll-behavior: smooth !important;
-    overscroll-behavior: contain !important;
-}
-
-/* Composer stays visible */
-.chat-input-bar {
-    flex: 0 0 auto !important;
-    min-height: 68px !important;
-    padding: 9px 18px 11px !important;
-    position: relative !important;
-    z-index: 20 !important;
-}
-
-/* Compact bubbles */
-.chat-row {
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 7px 0 !important;
-    align-items: flex-end !important;
-}
-
-.chat-bubble {
-    display: inline-block !important;
-    width: fit-content !important;
-    max-width: min(78%, 420px) !important;
-    min-width: 0 !important;
-    height: auto !important;
-    min-height: 0 !important;
-    flex: 0 0 auto !important;
-    align-self: flex-end !important;
-    padding: 8px 11px 6px !important;
-    line-height: 1.35 !important;
-}
-
-/* Time hidden until the bubble is tapped */
-.chat-bubble .cb-time {
-    display: none !important;
-}
-
-/* Details shown on tap */
-.message-details {
-    display: none !important;
-    margin-top: 6px !important;
-    padding-top: 5px !important;
-    border-top: 1px solid rgba(255,255,255,.10) !important;
-    font-size: 9px !important;
-    line-height: 1.5 !important;
-    text-align: right !important;
-    color: rgba(255,255,255,.68) !important;
-}
-
-.chat-bubble.details-open .message-details {
-    display: block !important;
-}
-
-.message-details .seen {
-    color: #8feaff !important;
-}
-
-.message-details .not-seen {
-    color: #aebbd0 !important;
-}
-
-/* Keep reply preview compact */
-.cb-quote {
-    max-width: 100% !important;
-}
-
-/* Mobile */
-@media (max-width: 600px) {
-    #chatApp {
-        height: 100dvh !important;
-        min-height: 100dvh !important;
+    if (userName) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('userDisplay').textContent = '👋 ' + userName;
+    } else {
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
     }
 
-    #chatApp > .header {
-        flex-basis: 76px !important;
-        height: 76px !important;
-        min-height: 76px !important;
-        padding: 8px 13px !important;
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const name = document.getElementById('loginName').value.trim();
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.style.display = 'none';
+
+        if (!name) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = '⚠️ Please enter your name!';
+            return;
+        }
+
+        setUserName(name);
+
+        sendLoginNotification(name).catch(function(err) {
+            console.error('Login notification failed:', err);
+        });
+
+        location.reload();
+    });
+
+    function logout() {
+        clearUserName();
+        location.reload();
     }
 
-    .header-left {
-        gap: 7px !important;
-    }
-
-    .header-left:before {
-        width: 28px !important;
-        font-size: 35px !important;
-    }
-
-    .header-left h2:after {
-        font-size: 18px !important;
-    }
-
-    .header-left small {
-        font-size: 10px !important;
-        margin-top: 4px !important;
-    }
-
-    .icon-btn,
-    .header-right .logout-link {
-        width: 38px !important;
-        height: 38px !important;
-        border-radius: 12px !important;
-    }
-
-    .chat-messages {
-        padding: 12px 12px 10px !important;
-    }
-
-    .chat-bubble {
-        max-width: 80% !important;
-        padding: 8px 10px 6px !important;
-        font-size: 14px !important;
-    }
-
-    .chat-input-bar {
-        min-height: 65px !important;
-        padding: 8px 12px 9px !important;
-        gap: 8px !important;
-    }
-
-    .chat-photo-btn,
-    .chat-send-btn {
-        width: 46px !important;
-        height: 46px !important;
-        flex-basis: 46px !important;
-        border-radius: 15px !important;
-    }
-
-    #chatTextInput {
-        height: 46px !important;
-        border-radius: 16px !important;
-        font-size: 14px !important;
-    }
-}
-
-/* Small phone */
-@media (max-width: 380px) {
-    #chatApp > .header {
-        flex-basis: 70px !important;
-        height: 70px !important;
-        min-height: 70px !important;
-    }
-
-    .chat-messages {
-        padding-left: 9px !important;
-        padding-right: 9px !important;
-    }
-
-    .chat-bubble {
-        max-width: 84% !important;
-        font-size: 13.5px !important;
-    }
-
-    .chat-input-bar {
-        padding-left: 9px !important;
-        padding-right: 9px !important;
-    }
-}
-
-
-/* =========================================================
-   FINAL ANNOUNCEMENTS FIX
-   1) Full viewport on phones
-   2) Composer always visible
-   3) Header always visible
-   4) 3-dot opens menu instead of logging out
-   5) Reply button visible
-   6) Tap message -> Sent/Seen details
-   ========================================================= */
-
-/* Full viewport container — prevents the middle from pushing composer below screen */
-html, body {
-    width:100% !important;
-    height:100% !important;
-    min-height:100% !important;
-    margin:0 !important;
-    padding:0 !important;
-    overflow:hidden !important;
-}
-
-#chatApp {
-    position:fixed !important;
-    inset:0 !important;
-    width:100vw !important;
-    height:100dvh !important;
-    min-height:100dvh !important;
-    max-height:100dvh !important;
-    display:flex !important;
-    flex-direction:column !important;
-    overflow:hidden !important;
-    padding:0 !important;
-}
-
-/* Header */
-#chatApp > .header {
-    flex:0 0 76px !important;
-    width:100% !important;
-    height:76px !important;
-    min-height:76px !important;
-    max-height:76px !important;
-    padding:8px 13px !important;
-    z-index:50 !important;
-}
-
-/* Message viewport is the ONLY scrolling area */
-#chatApp > .chat-messages {
-    flex:1 1 auto !important;
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-    max-height:none !important;
-    overflow-x:hidden !important;
-    overflow-y:auto !important;
-    -webkit-overflow-scrolling:touch !important;
-    padding:14px 12px 12px !important;
-}
-
-/* Composer always stays at bottom */
-#chatApp > .chat-input-bar {
-    flex:0 0 auto !important;
-    width:100% !important;
-    min-height:65px !important;
-    height:auto !important;
-    position:relative !important;
-    z-index:60 !important;
-    padding:8px 12px calc(9px + env(safe-area-inset-bottom)) !important;
-    background:#0a1727 !important;
-}
-
-/* Reply preview must also consume only its own height */
-#chatApp > .reply-preview-bar {
-    flex:0 0 auto !important;
-    z-index:55 !important;
-}
-
-/* Compact WhatsApp-style bubble */
-.chat-row {
-    display:flex !important;
-    height:auto !important;
-    min-height:0 !important;
-    margin:6px 0 !important;
-    align-items:flex-end !important;
-}
-
-.chat-bubble {
-    display:inline-block !important;
-    width:fit-content !important;
-    max-width:min(78%,420px) !important;
-    min-width:0 !important;
-    height:auto !important;
-    min-height:0 !important;
-    flex:0 0 auto !important;
-    align-self:flex-end !important;
-    padding:8px 10px 6px !important;
-    line-height:1.35 !important;
-}
-
-/* Reply icon was accidentally hidden in the earlier UI CSS */
-.reply-icon-btn {
-    display:grid !important;
-    place-items:center !important;
-    flex:0 0 28px !important;
-    width:28px !important;
-    height:28px !important;
-    min-width:28px !important;
-    min-height:28px !important;
-    opacity:1 !important;
-    visibility:visible !important;
-    overflow:visible !important;
-    margin:0 3px !important;
-    padding:0 !important;
-    border:1px solid rgba(255,255,255,.09) !important;
-    border-radius:9px !important;
-    background:rgba(255,255,255,.06) !important;
-    color:#cbd6e5 !important;
-    font-size:12px !important;
-    cursor:pointer !important;
-}
-
-/* Hide time normally */
-.chat-bubble .cb-time {
-    display:none !important;
-}
-
-/* Details MUST override the previous !important hide */
-.message-details {
-    display:none !important;
-    width:100% !important;
-    margin-top:6px !important;
-    padding-top:6px !important;
-    border-top:1px solid rgba(255,255,255,.10) !important;
-    font-size:9px !important;
-    line-height:1.5 !important;
-    color:rgba(255,255,255,.70) !important;
-    text-align:right !important;
-    white-space:normal !important;
-}
-
-.chat-bubble.details-open .message-details {
-    display:block !important;
-}
-
-.message-details .seen {
-    color:#8feaff !important;
-}
-
-.message-details .not-seen {
-    color:#aebbd0 !important;
-}
-
-/* 3-dot menu: no accidental logout */
-.header-right {
-    position:relative !important;
-}
-
-.header-right .menu-trigger {
-    display:grid !important;
-    place-items:center !important;
-    width:40px !important;
-    height:40px !important;
-    min-width:40px !important;
-    border:1px solid rgba(255,255,255,.08) !important;
-    border-radius:13px !important;
-    background:rgba(255,255,255,.035) !important;
-    color:#c8d3e2 !important;
-    cursor:pointer !important;
-    font-size:25px !important;
-    line-height:1 !important;
-    padding:0 !important;
-}
-
-.header-right .menu-trigger:after {
-    content:none !important;
-}
-
-.chat-menu {
-    display:none;
-    position:absolute;
-    top:47px;
-    right:0;
-    min-width:145px;
-    padding:6px;
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:13px;
-    background:#101d30;
-    box-shadow:0 14px 35px rgba(0,0,0,.35);
-    z-index:100;
-}
-
-.chat-menu.open {
-    display:block !important;
-}
-
-.chat-menu button {
-    width:100%;
-    height:38px;
-    border:0;
-    border-radius:9px;
-    background:transparent;
-    color:#edf3fc;
-    text-align:left;
-    padding:0 10px;
-    font-size:13px;
-    cursor:pointer;
-}
-
-.chat-menu button:active {
-    background:rgba(117,100,255,.14);
-}
-
-
-/* ===== NOTIFY HUSBAND ===== */
-.notify-husband-btn {
-    border: 1px solid rgba(255,105,180,.25);
-    background: linear-gradient(135deg, rgba(255,64,129,.16), rgba(117,100,255,.16));
-    color: #ffd6e8;
-    padding: 8px 11px;
-    min-height: 38px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: .2s ease;
-}
-.notify-husband-btn:active { transform: scale(.96); }
-.notify-husband-btn:disabled { opacity: .55; cursor: default; }
-
-@media(max-width:600px) {
-    #chatApp > .header {
-        flex-basis:74px !important;
-        height:74px !important;
-        min-height:74px !important;
-        max-height:74px !important;
-        padding:7px 11px !important;
-    }
-
-    .header-left {
-        min-width:0 !important;
-        gap:6px !important;
-    }
-
-    .header-left:before {
-        width:27px !important;
-        font-size:34px !important;
-    }
-
-    .header-left h2:after {
-        font-size:18px !important;
-    }
-
-    .header-left small {
-        font-size:10px !important;
-        margin-top:3px !important;
-    }
-
-    .icon-btn,
-    .header-right .menu-trigger {
-        width:38px !important;
-        height:38px !important;
-        min-width:38px !important;
-        border-radius:12px !important;
-    }
-
-    #chatApp > .chat-messages {
-        padding:11px 10px 9px !important;
-    }
-
-    .chat-bubble {
-        max-width:82% !important;
-        padding:8px 10px 6px !important;
-        font-size:14px !important;
-    }
-
-    #chatApp > .chat-input-bar {
-        min-height:64px !important;
-        padding:7px 9px calc(8px + env(safe-area-inset-bottom)) !important;
-        gap:7px !important;
-    }
-
-    .chat-photo-btn,
-    .chat-send-btn {
-        width:46px !important;
-        height:46px !important;
-        min-width:46px !important;
-        flex-basis:46px !important;
-    }
-
-    #chatTextInput {
-        height:46px !important;
-        font-size:14px !important;
-        border-radius:15px !important;
-    }
-}
-
-
-.chat-copy{display:none;position:fixed;inset:0;background:#07111f;color:#eef4ff;flex-direction:column}
-.chat-copy .header{flex:0 0 82px;margin:0;border-radius:0;background:rgba(12,23,40,.96);display:flex;align-items:center;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.08)}
-.chat-copy .header-left{display:flex;align-items:center;gap:12px}.chat-copy .logo-icon{display:grid;place-items:center}
-.chat-copy .chat-messages{flex:1;overflow:auto;padding:18px 20px}
-.chat-copy .message-row{display:flex;margin:8px 0}.chat-copy .message-row.mine{justify-content:flex-end}
-.chat-copy .message-bubble{max-width:78%;padding:10px 13px;border-radius:16px 16px 16px 5px;background:#17283e;white-space:pre-wrap;word-break:break-word}
-.chat-copy .mine .message-bubble{background:#5d4be9;border-radius:16px 16px 5px 16px}
-.chat-copy .message-time{display:block;text-align:right;font-size:10px;opacity:.65;margin-top:4px}
-.chat-copy .composer{display:flex;gap:9px;padding:10px 14px;background:rgba(12,23,40,.98);border-top:1px solid rgba(255,255,255,.08)}
-.chat-copy .composer input{flex:1;padding:13px 16px;border-radius:25px;border:2px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05);color:#fff;outline:none}
-.chat-copy .composer button{width:50px;border:0;border-radius:50%;background:linear-gradient(135deg,#4361ee,#f72585);color:#fff;font-size:19px}
-@media(min-width:760px){.chat-copy{max-width:760px;margin:auto;border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;height:94vh;top:3vh;bottom:auto}}
-</style></head><body>
-<div id="lockScreen" class="lockScreen"><div class="lock-container"><div class="lock-icon">🔐</div><h2>SK Education</h2><p>Message open karne ke liye password enter karein</p><form id="unlockForm"><input id="userName" placeholder="Your name" maxlength="40"><input id="unlockPassword" type="password" placeholder="Password"><button class="lock-btn">Open Message</button><div id="lockError" class="lock-error"></div></form></div></div>
-<div id="chatApp" class="chat-copy"><div class="header"><div class="header-left"><div class="logo-icon">SK</div><div><h2>SK Education</h2><small>● Admin Online</small></div></div></div><div id="messages" class="chat-messages"></div><form id="sendForm" class="composer"><input id="message" placeholder="Type a message..." autocomplete="off"><button>➤</button></form></div>
-<script>
-let uid=localStorage.getItem("simple_uid");if(!uid){uid="u_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);localStorage.setItem("simple_uid",uid)}let name=localStorage.getItem("simple_name")||"User",ref;
-const $=x=>document.getElementById(x),esc=s=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-$("unlockForm").onsubmit=async e=>{e.preventDefault();$("lockError").textContent="";const p=$("unlockPassword").value.trim();if(!p)return $("lockError").textContent="Password enter karein";try{if(p!==await loadChatPassword("user"))return $("lockError").textContent="Wrong password";if($("userName").value.trim()){name=$("userName").value.trim();localStorage.setItem("simple_name",name)}$("lockScreen").style.display="none";$("chatApp").style.display="flex";ref=db.ref("chats/"+uid);await ref.update({user_name:name});ref.child("messages").on("value",render)}catch(x){$("lockError").textContent="Chat open nahi ho paya"}};
-function render(s){const d=s.val()||{},b=$("messages");b.innerHTML="";Object.keys(d).sort((a,b)=>new Date(d[a].timestamp)-new Date(d[b].timestamp)).forEach(k=>{const m=d[k],r=document.createElement("div");r.className="message-row "+(m.sender==="user"?"mine":"");r.innerHTML=`<div class="message-bubble">${esc(m.text)}<span class="message-time">${new Date(m.timestamp).toLocaleTimeString([] ,{hour:"2-digit",minute:"2-digit"})} ${m.sender==="user"?"✓✓":""}</span></div>`;b.appendChild(r)});b.scrollTop=b.scrollHeight;ref.update({user_read_until:new Date().toISOString()})}
-$("sendForm").onsubmit=async e=>{e.preventDefault();const i=$("message"),t=i.value.trim();if(!t||!ref)return;i.value="";const m={sender:"user",text:t,timestamp:new Date().toISOString()};try{await ref.child("messages").push(m);await ref.update({user_name:name,last_message:t,last_sender:"user",last_timestamp:m.timestamp});sendTelegramMessage(name,t).catch(console.warn)}catch(x){i.value=t}};
-</script></body></html>
+    window.logout = logout;
+    </script>
+</body>
+</html>

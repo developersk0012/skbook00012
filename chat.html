@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message - SK Education</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07111f;
+  --panel:#0b1728;
+  --panel2:#111f33;
+  --text:#eef4ff;
+  --muted:#8fa0b7;
+  --line:rgba(255,255,255,.08);
+  --bubble:#17283e;
+  --mine:#5d4be9;
+  --accent:#7564ff;
+  --online:#54e5c2;
+}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+  min-height:100vh;
+  background:#07111f;
+  color:var(--text);
+  font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===== PASSWORD LOCK ===== */
+#lockScreen{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  background:
+    radial-gradient(circle at 20% 10%,rgba(117,100,255,.22),transparent 32%),
+    radial-gradient(circle at 85% 90%,rgba(45,212,191,.10),transparent 28%),
+    #07111f;
+}
+.lock-container{
+  width:min(100%,390px);
+  padding:30px 24px;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:rgba(13,27,46,.94);
+  box-shadow:0 25px 80px rgba(0,0,0,.45);
+  text-align:center;
+}
+.lock-icon{font-size:46px;margin-bottom:12px}
+.lock-container h2{font-size:22px;margin-bottom:7px}
+.lock-container p{font-size:13px;color:var(--muted);margin-bottom:20px}
+#unlockForm{display:flex;flex-direction:column;gap:10px}
+#unlockPassword{
+  width:100%;height:48px;padding:0 15px;
+  border-radius:14px;border:1px solid var(--line);
+  background:#101e32;color:white;outline:none;font-size:15px;
+}
+.lock-btn{
+  height:48px;border:0;border-radius:14px;
+  background:linear-gradient(135deg,#7564ff,#5143d8);
+  color:white;font-weight:700;font-size:15px;
+}
+.lock-error{display:none;color:#ff8f9f;font-size:12px}
+.lock-back-link{display:inline-block;margin-top:16px;color:#aebbd0;text-decoration:none;font-size:12px}
+
+/* ===== MAIN CHAT ===== */
+#chatApp{
+  width:100%;
+  height:100dvh;
+  min-height:100vh;
+  display:none;
+  flex-direction:column;
+  background:
+    radial-gradient(circle at 20% 8%,rgba(117,100,255,.07),transparent 25%),
+    #07111f;
+}
+
+/* Header like the 1st screenshot */
+#chatApp>.header{
+  flex:0 0 82px;
+  height:82px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 18px;
+  background:rgba(12,23,40,.96);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px);
+  box-shadow:0 4px 20px rgba(0,0,0,.12);
+}
+.header-left{
+  min-width:0;
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.header-left:before{
+  content:"‹";
+  display:grid;
+  place-items:center;
+  width:34px;height:42px;
+  color:#dce5f3;
+  font-size:40px;
+  line-height:1;
+  font-weight:300;
+}
+.logo-icon{display:none}
+.header-left>div:last-child{min-width:0}
+.header-left h2{
+  font-size:21px;
+  line-height:1.1;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  font-size:0;
+}
+.header-left h2:after{
+  content:"SK Education";
+  font-size:20px;
+}
+.header-left small{
+  display:block;
+  margin-top:6px;
+  color:var(--online);
+  font-size:12px;
+  font-weight:600;
+}
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+#userDisplay{
+  display:none!important;
+}
+.icon-btn{
+  width:42px;height:42px;
+  display:grid;place-items:center;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  color:#c8d3e2;
+  text-decoration:none;
+  font-size:20px;
+}
+.header-right .logout-link{
+  width:42px;height:42px;
+  overflow:hidden;
+  font-size:0;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+  color:#c8d3e2;
+  cursor:pointer;
+}
+.header-right .logout-link:after{
+  content:"⋮";
+  font-size:25px;
+  line-height:1;
+}
+
+/* Message area */
+.chat-messages{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:18px 20px 18px;
+  scroll-behavior:smooth;
+  overscroll-behavior:contain;
+  background:
+    radial-gradient(circle at 30% 25%,rgba(117,100,255,.045),transparent 28%),
+    linear-gradient(180deg,#07111f 0%,#06101d 100%);
+}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:20px}
+
+.chat-row{
+  display:flex;
+  align-items:flex-end;
+  width:100%;
+  margin:9px 0;
+  gap:4px;
+  animation:msgIn .16s ease-out both;
+}
+.chat-row.from-admin{justify-content:flex-start}
+.chat-row.from-user{justify-content:flex-end}
+
+@keyframes msgIn{
+  from{opacity:.55;transform:translateY(4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.chat-bubble{
+  display:block;
+  width:fit-content;
+  max-width:min(78%,500px);
+  min-width:0;
+  padding:10px 13px 7px;
+  border-radius:18px 18px 18px 6px;
+  background:var(--bubble);
+  border:1px solid rgba(255,255,255,.055);
+  color:#edf3fc;
+  font-size:15px;
+  line-height:1.42;
+  overflow-wrap:anywhere;
+  box-shadow:0 6px 20px rgba(0,0,0,.12);
+}
+.from-user .chat-bubble{
+  background:linear-gradient(135deg,#6655f2,#5545dc);
+  border-color:rgba(255,255,255,.08);
+  border-radius:18px 18px 6px 18px;
+}
+.cb-time{
+  margin-top:4px;
+  text-align:right;
+  font-size:10px;
+  line-height:1;
+  color:rgba(255,255,255,.52);
+  white-space:nowrap;
+}
+.from-user .cb-time{color:rgba(255,255,255,.74)}
+.cb-tick{margin-left:5px;font-size:13px;letter-spacing:-2px}
+.cb-tick.read{color:#8feaff}
+.cb-quote{
+  margin:-1px 0 7px;
+  padding:7px 9px;
+  border-left:3px solid #887bff;
+  border-radius:8px;
+  background:rgba(0,0,0,.16);
+  color:#bdc8da;
+  font-size:11px;
+  line-height:1.35;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.from-user .cb-quote{background:rgba(0,0,0,.12);color:#e1e6f2}
+.cb-link{
+  display:inline-block;
+  margin-top:6px;
+  color:#b8eaff;
+  text-decoration:none;
+  font-size:12px;
+  word-break:break-all;
+}
+
+/* Keep reply functionality, but don't clutter the UI */
+.reply-icon-btn{
+  flex:0 0 1px;
+  width:1px;height:1px;
+  opacity:0;
+  border:0;background:transparent;
+  overflow:hidden;
+  padding:0;margin:0;
+}
+
+/* Empty/loading states */
+.chat-loading,.chat-empty-state{
+  min-height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  color:var(--muted);
+  text-align:center;
+  font-size:13px;
+}
+.chat-empty-state .icon{font-size:28px}
+.spinner{
+  width:28px;height:28px;
+  border:3px solid rgba(255,255,255,.12);
+  border-top-color:#7564ff;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Reply preview */
+.reply-preview-bar{
+  display:none;
+  flex:0 0 auto;
+  align-items:center;
+  gap:8px;
+  padding:8px 13px;
+  background:#0e1b2e;
+  border-top:1px solid var(--line);
+}
+.reply-preview-bar.show{display:flex}
+.reply-preview-text{
+  flex:1;
+  min-width:0;
+  padding:7px 9px;
+  border-left:3px solid var(--accent);
+  border-radius:8px;
+  background:rgba(117,100,255,.09);
+  color:#bac7da;
+  font-size:11px;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.reply-preview-cancel{
+  width:30px;height:30px;border:0;
+  border-radius:9px;background:rgba(255,255,255,.05);
+  color:#aebbd0;font-size:14px;
+}
+
+/* Composer like the 1st screenshot */
+.chat-input-bar{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:10px 18px 12px;
+  background:rgba(10,23,39,.98);
+  border-top:1px solid var(--line);
+  box-shadow:0 -8px 28px rgba(0,0,0,.12);
+}
+.chat-photo-btn{
+  flex:0 0 48px;
+  width:48px;height:48px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#101e32;
+  color:#c2cede;
+  font-size:22px;
+  cursor:pointer;
+}
+#chatTextInput{
+  flex:1;
+  min-width:0;
+  height:48px;
+  padding:0 15px;
+  border:1px solid var(--line);
+  border-radius:17px;
+  background:#101e32;
+  color:#f4f7fb;
+  outline:none;
+  font-size:15px;
+}
+#chatTextInput::placeholder{color:#71829a}
+#chatTextInput:focus{
+  border-color:rgba(117,100,255,.55);
+  box-shadow:0 0 0 3px rgba(117,100,255,.08);
+}
+.chat-send-btn{
+  flex:0 0 48px;
+  width:48px;height:48px;
+  border:0;border-radius:16px;
+  color:white;
+  font-size:23px;
+  background:linear-gradient(135deg,#7564ff,#5143db);
+  box-shadow:0 9px 24px rgba(117,100,255,.25);
+  cursor:pointer;
+}
+.chat-send-btn:active,.chat-photo-btn:active{transform:scale(.96)}
+.chat-send-btn:disabled,.chat-photo-btn:disabled{opacity:.55}
+
+/* A small TODAY / private-conversation visual at the top */
+.chat-messages:before{
+  content:"TODAY";
+  display:block;
+  width:max-content;
+  margin:2px auto 22px;
+  color:#72839a;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.3px;
+}
+.chat-messages:after{
+  content:"";
+  display:block;
+  height:1px;
+}
+
+/* Desktop: keep the chat centered and premium */
+@media(min-width:700px){
+  body{padding:0}
+  #chatApp{
+    width:min(100%,700px);
+    margin:0 auto;
+    border-left:1px solid var(--line);
+    border-right:1px solid var(--line);
+    box-shadow:0 0 70px rgba(0,0,0,.28);
+  }
+  .chat-bubble{max-width:68%}
+}
+
+/* Mobile: match the screenshot proportions */
+@media(max-width:450px){
+  #chatApp{height:100dvh;min-height:100vh}
+  #chatApp>.header{height:82px;flex-basis:82px;padding:10px 15px}
+  .header-left h2:after{font-size:19px}
+  .header-left small{font-size:11px;margin-top:5px}
+  .icon-btn,.header-right .logout-link{width:40px;height:40px;border-radius:13px}
+  .chat-messages{padding:18px 20px 16px}
+  .chat-bubble{
+    max-width:82%;
+    font-size:15px;
+    padding:10px 13px 7px;
+  }
+  .chat-row{margin:8px 0}
+  .chat-input-bar{padding:9px 19px 11px;gap:9px}
+  .chat-photo-btn,.chat-send-btn{width:48px;height:48px;flex-basis:48px}
+}
+
+
+/* ===== WhatsApp-style tap-to-show message details ===== */
+.chat-row{height:auto!important;min-height:0!important;align-items:flex-end!important}
+.chat-bubble{
+  width:fit-content!important;
+  max-width:min(78%,420px)!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  flex:0 0 auto!important;
+  cursor:pointer!important;
+}
+.chat-bubble .cb-time{display:none!important}
+.message-details{
+  display:none;
+  margin-top:6px;
+  padding-top:5px;
+  border-top:1px solid rgba(255,255,255,.10);
+  font-size:9px;
+  line-height:1.5;
+  color:rgba(255,255,255,.68);
+  text-align:right;
+  white-space:normal;
+}
+.chat-bubble.details-open .message-details{display:block}
+.message-details .seen{color:#8feaff}
+.message-details .not-seen{color:#aebbd0}
+@media(max-width:480px){
+  .chat-bubble{max-width:80%!important}
+  .message-details{font-size:9px}
+}
+
+
+/* =========================================================
+   FINAL MOBILE CHAT FIX
+   - Full phone viewport
+   - Header always visible
+   - Composer always visible
+   - Compact WhatsApp-style bubbles
+   - Tap bubble -> Sent/Seen details
+   ========================================================= */
+
+html, body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden !important;
+}
+
+body {
+    margin: 0 !important;
+    background: #07111f !important;
+}
+
+#chatApp {
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+/* Header: don't let it get pushed/cut */
+#chatApp > .header {
+    flex: 0 0 82px !important;
+    height: 82px !important;
+    min-height: 82px !important;
+    max-height: 82px !important;
+}
+
+/* Messages take ONLY the middle space */
+.chat-messages {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 16px 18px 14px !important;
+    scroll-behavior: smooth !important;
+    overscroll-behavior: contain !important;
+}
+
+/* Composer stays visible */
+.chat-input-bar {
+    flex: 0 0 auto !important;
+    min-height: 68px !important;
+    padding: 9px 18px 11px !important;
+    position: relative !important;
+    z-index: 20 !important;
+}
+
+/* Compact bubbles */
+.chat-row {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 7px 0 !important;
+    align-items: flex-end !important;
+}
+
+.chat-bubble {
+    display: inline-block !important;
+    width: fit-content !important;
+    max-width: min(78%, 420px) !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    align-self: flex-end !important;
+    padding: 8px 11px 6px !important;
+    line-height: 1.35 !important;
+}
+
+/* Time hidden until the bubble is tapped */
+.chat-bubble .cb-time {
+    display: none !important;
+}
+
+/* Details shown on tap */
+.message-details {
+    display: none !important;
+    margin-top: 6px !important;
+    padding-top: 5px !important;
+    border-top: 1px solid rgba(255,255,255,.10) !important;
+    font-size: 9px !important;
+    line-height: 1.5 !important;
+    text-align: right !important;
+    color: rgba(255,255,255,.68) !important;
+}
+
+.chat-bubble.details-open .message-details {
+    display: block !important;
+}
+
+.message-details .seen {
+    color: #8feaff !important;
+}
+
+.message-details .not-seen {
+    color: #aebbd0 !important;
+}
+
+/* Keep reply preview compact */
+.cb-quote {
+    max-width: 100% !important;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+    #chatApp {
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+    }
+
+    #chatApp > .header {
+        flex-basis: 76px !important;
+        height: 76px !important;
+        min-height: 76px !important;
+        padding: 8px 13px !important;
+    }
+
+    .header-left {
+        gap: 7px !important;
+    }
+
+    .header-left:before {
+        width: 28px !important;
+        font-size: 35px !important;
+    }
+
+    .header-left h2:after {
+        font-size: 18px !important;
+    }
+
+    .header-left small {
+        font-size: 10px !important;
+        margin-top: 4px !important;
+    }
+
+    .icon-btn,
+    .header-right .logout-link {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 12px !important;
+    }
+
+    .chat-messages {
+        padding: 12px 12px 10px !important;
+    }
+
+    .chat-bubble {
+        max-width: 80% !important;
+        padding: 8px 10px 6px !important;
+        font-size: 14px !important;
+    }
+
+    .chat-input-bar {
+        min-height: 65px !important;
+        padding: 8px 12px 9px !important;
+        gap: 8px !important;
+    }
+
+    .chat-photo-btn,
+    .chat-send-btn {
+        width: 46px !important;
+        height: 46px !important;
+        flex-basis: 46px !important;
+        border-radius: 15px !important;
+    }
+
+    #chatTextInput {
+        height: 46px !important;
+        border-radius: 16px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Small phone */
+@media (max-width: 380px) {
+    #chatApp > .header {
+        flex-basis: 70px !important;
+        height: 70px !important;
+        min-height: 70px !important;
+    }
+
+    .chat-messages {
+        padding-left: 9px !important;
+        padding-right: 9px !important;
+    }
+
+    .chat-bubble {
+        max-width: 84% !important;
+        font-size: 13.5px !important;
+    }
+
+    .chat-input-bar {
+        padding-left: 9px !important;
+        padding-right: 9px !important;
+    }
+}
+
+
+/* =========================================================
+   FINAL ANNOUNCEMENTS FIX
+   1) Full viewport on phones
+   2) Composer always visible
+   3) Header always visible
+   4) 3-dot opens menu instead of logging out
+   5) Reply button visible
+   6) Tap message -> Sent/Seen details
+   ========================================================= */
+
+/* Full viewport container — prevents the middle from pushing composer below screen */
+html, body {
+    width:100% !important;
+    height:100% !important;
+    min-height:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+}
+
+#chatApp {
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+    padding:0 !important;
+}
+
+/* Header */
+#chatApp > .header {
+    flex:0 0 76px !important;
+    width:100% !important;
+    height:76px !important;
+    min-height:76px !important;
+    max-height:76px !important;
+    padding:8px 13px !important;
+    z-index:50 !important;
+}
+
+/* Message viewport is the ONLY scrolling area */
+#chatApp > .chat-messages {
+    flex:1 1 auto !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+    padding:14px 12px 12px !important;
+}
+
+/* Composer always stays at bottom */
+#chatApp > .chat-input-bar {
+    flex:0 0 auto !important;
+    width:100% !important;
+    min-height:65px !important;
+    height:auto !important;
+    position:relative !important;
+    z-index:60 !important;
+    padding:8px 12px calc(9px + env(safe-area-inset-bottom)) !important;
+    background:#0a1727 !important;
+}
+
+/* Reply preview must also consume only its own height */
+#chatApp > .reply-preview-bar {
+    flex:0 0 auto !important;
+    z-index:55 !important;
+}
+
+/* Compact WhatsApp-style bubble */
+.chat-row {
+    display:flex !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:6px 0 !important;
+    align-items:flex-end !important;
+}
+
+.chat-bubble {
+    display:inline-block !important;
+    width:fit-content !important;
+    max-width:min(78%,420px) !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    flex:0 0 auto !important;
+    align-self:flex-end !important;
+    padding:8px 10px 6px !important;
+    line-height:1.35 !important;
+}
+
+/* Reply icon was accidentally hidden in the earlier UI CSS */
+.reply-icon-btn {
+    display:grid !important;
+    place-items:center !important;
+    flex:0 0 28px !important;
+    width:28px !important;
+    height:28px !important;
+    min-width:28px !important;
+    min-height:28px !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    overflow:visible !important;
+    margin:0 3px !important;
+    padding:0 !important;
+    border:1px solid rgba(255,255,255,.09) !important;
+    border-radius:9px !important;
+    background:rgba(255,255,255,.06) !important;
+    color:#cbd6e5 !important;
+    font-size:12px !important;
+    cursor:pointer !important;
+}
+
+/* Hide time normally */
+.chat-bubble .cb-time {
+    display:none !important;
+}
+
+/* Details MUST override the previous !important hide */
+.message-details {
+    display:none !important;
+    width:100% !important;
+    margin-top:6px !important;
+    padding-top:6px !important;
+    border-top:1px solid rgba(255,255,255,.10) !important;
+    font-size:9px !important;
+    line-height:1.5 !important;
+    color:rgba(255,255,255,.70) !important;
+    text-align:right !important;
+    white-space:normal !important;
+}
+
+.chat-bubble.details-open .message-details {
+    display:block !important;
+}
+
+.message-details .seen {
+    color:#8feaff !important;
+}
+
+.message-details .not-seen {
+    color:#aebbd0 !important;
+}
+
+/* 3-dot menu: no accidental logout */
+.header-right {
+    position:relative !important;
+}
+
+.header-right .menu-trigger {
+    display:grid !important;
+    place-items:center !important;
+    width:40px !important;
+    height:40px !important;
+    min-width:40px !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    border-radius:13px !important;
+    background:rgba(255,255,255,.035) !important;
+    color:#c8d3e2 !important;
+    cursor:pointer !important;
+    font-size:25px !important;
+    line-height:1 !important;
+    padding:0 !important;
+}
+
+.header-right .menu-trigger:after {
+    content:none !important;
+}
+
+.chat-menu {
+    display:none;
+    position:absolute;
+    top:47px;
+    right:0;
+    min-width:145px;
+    padding:6px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:13px;
+    background:#101d30;
+    box-shadow:0 14px 35px rgba(0,0,0,.35);
+    z-index:100;
+}
+
+.chat-menu.open {
+    display:block !important;
+}
+
+.chat-menu button {
+    width:100%;
+    height:38px;
+    border:0;
+    border-radius:9px;
+    background:transparent;
+    color:#edf3fc;
+    text-align:left;
+    padding:0 10px;
+    font-size:13px;
+    cursor:pointer;
+}
+
+.chat-menu button:active {
+    background:rgba(117,100,255,.14);
+}
+
+
+/* ===== NOTIFY HUSBAND ===== */
+.notify-husband-btn {
+    border: 1px solid rgba(255,105,180,.25);
+    background: linear-gradient(135deg, rgba(255,64,129,.16), rgba(117,100,255,.16));
+    color: #ffd6e8;
+    padding: 8px 11px;
+    min-height: 38px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: .2s ease;
+}
+.notify-husband-btn:active { transform: scale(.96); }
+.notify-husband-btn:disabled { opacity: .55; cursor: default; }
+
+@media(max-width:600px) {
+    #chatApp > .header {
+        flex-basis:74px !important;
+        height:74px !important;
+        min-height:74px !important;
+        max-height:74px !important;
+        padding:7px 11px !important;
+    }
+
+    .header-left {
+        min-width:0 !important;
+        gap:6px !important;
+    }
+
+    .header-left:before {
+        width:27px !important;
+        font-size:34px !important;
+    }
+
+    .header-left h2:after {
+        font-size:18px !important;
+    }
+
+    .header-left small {
+        font-size:10px !important;
+        margin-top:3px !important;
+    }
+
+    .icon-btn,
+    .header-right .menu-trigger {
+        width:38px !important;
+        height:38px !important;
+        min-width:38px !important;
+        border-radius:12px !important;
+    }
+
+    #chatApp > .chat-messages {
+        padding:11px 10px 9px !important;
+    }
+
+    .chat-bubble {
+        max-width:82% !important;
+        padding:8px 10px 6px !important;
+        font-size:14px !important;
+    }
+
+    #chatApp > .chat-input-bar {
+        min-height:64px !important;
+        padding:7px 9px calc(8px + env(safe-area-inset-bottom)) !important;
+        gap:7px !important;
+    }
+
+    .chat-photo-btn,
+    .chat-send-btn {
+        width:46px !important;
+        height:46px !important;
+        min-width:46px !important;
+        flex-basis:46px !important;
+    }
+
+    #chatTextInput {
+        height:46px !important;
+        font-size:14px !important;
+        border-radius:15px !important;
+    }
+}
+
+</style>
+</head>
+<body>
+
+    <!-- ===== LOCK SCREEN ===== -->
+    <div id="lockScreen">
+        <div class="lock-container">
+            <div class="lock-icon">🔒</div>
+            <h2>Protected Message</h2>
+            <p>Ye chat sirf password se khulti hai</p>
+            <form id="unlockForm">
+                <input type="password" id="unlockPassword" placeholder="Password daalein" required autocomplete="off">
+                <button type="submit" class="lock-btn">🔓 Unlock</button>
+                <div id="unlockError" class="lock-error">❌ Galat password!</div>
+            </form>
+            <a href="index.html" class="lock-back-link">← Wapas Home jaayein</a>
+        </div>
+    </div>
+
+    <!-- ===== CHAT APP ===== -->
+    <div id="chatApp">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo-icon">SK</div>
+                <div>
+                    <h2>💬 Message</h2>
+                    <small id="headerSub">Chat with husband</small>
+                </div>
+            </div>
+            <div class="header-right">
+                <span class="icon-btn" id="userDisplay" style="cursor:default;">👋 User</span>
+                <a href="index.html" class="icon-btn">🏠</a>
+                <button type="button" class="notify-husband-btn" id="notifyHusbandBtn" onclick="notifyYourHusband()">💌 Notify Your Husband</button>
+                <button type="button" class="logout-link menu-trigger" id="chatMenuBtn" onclick="toggleChatMenu(event)" aria-label="More options">⋮</button>
+                <div class="chat-menu" id="chatMenu">
+                    <button type="button" onclick="closeChatMenu(); logout();">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHAT MESSAGES -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-loading"><div class="spinner"></div></div>
+        </div>
+
+        <!-- REPLY PREVIEW BAR -->
+        <div class="reply-preview-bar" id="replyPreviewBar">
+            <div class="reply-preview-text" id="replyPreviewText"></div>
+            <button class="reply-preview-cancel" id="replyPreviewCancel">✕</button>
+        </div>
+
+        <!-- INPUT BAR -->
+        <div class="chat-input-bar">
+            <button class="chat-photo-btn" id="photoBtn" title="Send photo">📷</button>
+            <input type="file" id="photoInput" accept="image/*" style="display:none;">
+            <input type="text" id="chatTextInput" placeholder="Type a message...">
+            <button class="chat-send-btn" id="chatSendBtn">➤</button>
+        </div>
+    </div>
+
+    <script>
+    // ========================================
+    // CHECK LOGIN
+    // ========================================
+    const userName = getUserName();
+
+    if (!userName) {
+        window.location.href = 'index.html';
+    } else {
+
+    document.getElementById('userDisplay').textContent = '👋 ' + userName;
+
+    // "Notify Your Husband" — ek tap par Telegram notification.
+    function notifyYourHusband() {
+        const btn = document.getElementById('notifyHusbandBtn');
+        if (!btn || typeof sendHusbandNotifyNotification !== 'function') return;
+        btn.disabled = true;
+        const oldText = btn.textContent;
+        btn.textContent = '⏳ Sending...';
+        sendHusbandNotifyNotification(userName).then(function() {
+            btn.textContent = '✅ Notified';
+            setTimeout(function() { btn.textContent = oldText; btn.disabled = false; }, 1800);
+        }).catch(function(err) {
+            console.error('Husband notification failed:', err);
+            btn.textContent = '❌ Try Again';
+            setTimeout(function() { btn.textContent = oldText; btn.disabled = false; }, 1800);
+        });
+    }
+    window.notifyYourHusband = notifyYourHusband;
+
+    // ========================================
+    // PASSWORD LOCK — har baar mangta hai, admin panel se reset ho sakta hai
+    // ========================================
+    document.getElementById('lockScreen').style.display = 'flex';
+
+    document.getElementById('unlockForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = e.target;
+        const input = document.getElementById('unlockPassword');
+        const entered = input.value.trim();
+        const errorDiv = document.getElementById('unlockError');
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!entered) { input.focus(); return; }
+
+        errorDiv.style.display = 'none';
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ Checking...';
+
+        Promise.resolve()
+            .then(function() { return loadAnnouncementPassword(); })
+            .then(function(correctPassword) {
+                if (entered === String(correctPassword)) {
+                    document.getElementById('lockScreen').style.display = 'none';
+                    document.getElementById('chatApp').style.display = 'flex';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '🔓 Unlock';
+                    initChat();
+                    // Telegram notification ONLY after password unlock succeeds.
+                    if (typeof sendAnnouncementOpenNotification === 'function') {
+                        sendAnnouncementOpenNotification(userName).catch(function(err) {
+                            console.error('Announcement unlock notification failed:', err);
+                        });
+                    }
+                } else {
+                    throw new Error('WRONG_PASSWORD');
+                }
+            })
+            .catch(function(err) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔓 Unlock';
+                console.error('Message unlock failed:', err);
+                errorDiv.textContent = err && err.message === 'WRONG_PASSWORD'
+                    ? '❌ Galat password!'
+                    : '⚠️ Password check nahi ho paaya. Internet/Firebase check karein.';
+                errorDiv.style.display = 'block';
+                input.value = '';
+                input.focus();
+            });
+    });
+
+    // ========================================
+    // CHAT (sirf unlock hone ke baad init hoti hai)
+    // ========================================
+    function initChat() {
+        const myUserId = getUserId();
+        const chatRef = db.ref('chats/' + myUserId);
+        const messagesContainer = document.getElementById('chatMessages');
+        let replyingTo = null; // { sender, text } — jis message ka reply diya ja raha hai
+        let renderedKeys = new Set(); // kaunse messages already DOM mein aa chuke hain
+        let adminReadUntil = null;
+        let userReadUntil = null;
+        let messagesLoaded = false;
+        let loadingTimer = null;
+
+        function formatLastSeen(ts) {
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return 'recently';
+            const min = Math.floor(Math.max(0, Date.now() - d.getTime()) / 60000);
+            if (min < 1) return 'just now';
+            if (min < 60) return min + ' min ago';
+            const hrs = Math.floor(min / 60);
+            if (hrs < 24) return hrs + ' hr ago';
+            return d.toLocaleString([], {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+        }
+
+        function pruneOldChatMessages(uid, messages) {
+            if (!messages) return;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (m && m.timestamp && new Date(m.timestamp).getTime() < cutoff) {
+                    db.ref('chats/' + uid + '/messages/' + key).remove().catch(function() {});
+                }
+            });
+        }
+
+        // Purane (24hr se zyada) messages ko render hone se pehle hi hata dete
+        // hain, taaki wo screen par pehle dikhein aur phir (delete complete hote
+        // hi) gayab ho jayein — is "flash then disappear" glitch ko fix karta hai.
+        function filterFreshMessages(messages) {
+            if (!messages) return messages;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            const fresh = {};
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (m && m.timestamp && new Date(m.timestamp).getTime() >= cutoff) {
+                    fresh[key] = m;
+                }
+            });
+            return fresh;
+        }
+
+        function stopLoadingTimer() {
+            if (loadingTimer) {
+                clearTimeout(loadingTimer);
+                loadingTimer = null;
+            }
+        }
+
+        function showChatLoadFailure() {
+            if (messagesLoaded) return;
+            messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">⚠️</span><p>Messages load nahi ho paaye.<br>Internet/Firebase connection check karein.</p><button type="button" onclick="location.reload()" style="margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#6958e8;color:#fff;font-weight:700;">Retry</button></div>';
+        }
+
+        chatRef.update({ user_name: userName }).catch(function() {});
+
+        // ========================================
+        // PRESENCE (Online/Offline + Last Seen)
+        // ========================================
+        db.ref('.info/connected').on('value', function(snap) {
+            if (snap.val() === false) return;
+            chatRef.onDisconnect().update({ online: false, last_seen: new Date().toISOString() }).then(function() {
+                chatRef.update({ online: true, user_name: userName });
+            });
+        });
+
+        // Admin (husband) ka online/last-seen status — header mein dikhta hai
+        db.ref('admin_presence').on('value', function(snap) {
+            const data = snap.val() || {};
+            const el = document.getElementById('headerSub');
+            if (data.online) {
+                el.textContent = '🟢 Online';
+            } else if (data.last_seen) {
+                el.textContent = 'Last seen: ' + formatLastSeen(data.last_seen);
+            } else {
+                el.textContent = 'Chat with husband';
+            }
+        });
+
+        // ========================================
+        // CHAT NODE (parent) — admin_read_until yahan se milta hai,
+        // taaki "✓✓ Read" ticks turant update ho sakein.
+        // ========================================
+        chatRef.on('value', function(snap) {
+            const data = snap.val() || {};
+            adminReadUntil = data.admin_read_until || null;
+            userReadUntil = data.user_read_until || null;
+            updateTicks();
+            updateMessageDetails();
+        });
+
+        // ========================================
+        // MESSAGES — Incremental render: sirf NAYE messages hi DOM mein
+        // append hote hain (poora list dobara nahi banta). Isse:
+        // (1) order ka bug fix hota hai — naya message hamesha sabse
+        //     neeche hi aata hai, kabhi upar/idhar-udhar nahi jaata.
+        // (2) chat smooth rehti hai — purane messages baar-baar
+        //     re-render/re-animate nahi hote.
+        // ========================================
+        chatRef.child('messages').on('value', function(snap) {
+            try {
+                const rawMessages = snap.val();
+                messagesLoaded = true;
+                stopLoadingTimer();
+                pruneOldChatMessages(myUserId, rawMessages); // background cleanup, silent
+                const messages = filterFreshMessages(rawMessages); // never render expired ones
+                renderMessages(messages);
+                markAdminMessagesSeen(messages);
+            } catch (err) {
+                console.error('Chat render error:', err);
+                messagesLoaded = true;
+                stopLoadingTimer();
+                messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">⚠️</span><p>Messages render nahi ho paaye.<br>Page reload karke try karein.</p><button type="button" onclick="location.reload()" style="margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#6958e8;color:#fff;font-weight:700;">Retry</button></div>';
+            }
+        }, function(err) {
+            console.error('Chat load error:', err);
+            messagesLoaded = true;
+            stopLoadingTimer();
+            messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">⚠️</span><p>Messages load nahi ho paye.<br>Internet/Firebase check karein.</p><button type="button" onclick="location.reload()" style="margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#6958e8;color:#fff;font-weight:700;">Retry</button></div>';
+        });
+
+        loadingTimer = setTimeout(function() {
+            showChatLoadFailure();
+        }, 7000);
+
+        // User is inside this private chat: received admin messages become Seen.
+        function markAdminMessagesSeen(messages) {
+            messages = messages || window.__msgCacheForReply || {};
+            const adminMessages = Object.keys(messages).filter(function(key) {
+                return messages[key] && messages[key].sender === 'admin' && messages[key].timestamp;
+            });
+            if (!adminMessages.length) return;
+
+            const latestAdminTs = Math.max.apply(null, adminMessages.map(function(key) {
+                return new Date(messages[key].timestamp).getTime();
+            }));
+            const alreadyRead = userReadUntil ? new Date(userReadUntil).getTime() : 0;
+            if (latestAdminTs <= alreadyRead) {
+                updateMessageDetails();
+                return;
+            }
+
+            const seenAt = new Date().toISOString();
+            userReadUntil = seenAt;
+            chatRef.update({ user_read_until: seenAt }).then(function() {
+                updateMessageDetails();
+            }).catch(function(err) {
+                console.warn('Seen update failed:', err);
+            });
+        }
+
+        // Chat open hote hi currently visible admin messages Seen hon.
+        setTimeout(function(){ markAdminMessagesSeen(); }, 250);
+
+
+        function formatMessageDateTime(ts) {
+            return new Date(ts).toLocaleString([], {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getSeenTime(m) {
+            if (!m || !m.timestamp) return null;
+            const sent = new Date(m.timestamp).getTime();
+
+            if (m.sender === 'user' && adminReadUntil) {
+                const read = new Date(adminReadUntil).getTime();
+                if (sent <= read) return formatMessageDateTime(adminReadUntil);
+            }
+
+            if (m.sender === 'admin' && userReadUntil) {
+                const read = new Date(userReadUntil).getTime();
+                if (sent <= read) return formatMessageDateTime(userReadUntil);
+            }
+
+            return null;
+        }
+
+        function buildBubbleHtml(key, m) {
+            const rowCls = m.sender === 'admin' ? 'from-admin' : 'from-user';
+            const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const quotePreview = m.reply_to ? (m.reply_to.length > 60 ? m.reply_to.slice(0, 60) + '…' : m.reply_to) : null;
+            const seenTime = getSeenTime(m);
+            const isRead = !!seenTime;
+            const tickHtml = m.sender === 'user'
+                ? `<span class="cb-tick${isRead ? ' read' : ''}" data-msgkey="${key}">${isRead ? '✓✓' : '✓'}</span>`
+                : '';
+
+            const details = `
+                <div class="message-details" data-details-key="${key}">
+                    <div>Sent: ${formatMessageDateTime(m.timestamp)}</div>
+                    <div class="${seenTime ? 'seen' : 'not-seen'}">
+                        ${seenTime ? 'Seen: ' + seenTime : 'Not seen yet'}
+                    </div>
+                </div>`;
+
+            return `
+                <div class="chat-row ${rowCls}" id="msgrow-${key}">
+                    ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setReply('${key}')" title="Reply">❕</button>` : ''}
+                    <div class="chat-bubble" onclick="toggleMessageDetails(event, '${key}')">
+                        ${quotePreview ? `<div class="cb-quote">${quotePreview}</div>` : ''}
+                        <div>${m.text}</div>
+                        ${m.link_url ? `<div><a href="${m.link_url}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${m.link_title || 'Open Link'}</a></div>` : ''}
+                        <div class="cb-time">${time}${tickHtml}</div>
+                        ${details}
+                    </div>
+                    ${rowCls === 'from-user' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setReply('${key}')" title="Reply">❕</button>` : ''}
+                </div>
+            `;
+        }
+
+        function renderMessages(messages) {
+            window.__msgCacheForReply = messages || {};
+
+            if (!messages) {
+                messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">💬</span><p>Abhi koi message nahi hai.<br>Neeche se message bhejein!</p></div>';
+                renderedKeys.clear();
+                return;
+            }
+
+            // Pehla "empty state" placeholder hata dein agar abhi bhi laga hai
+            const emptyState = messagesContainer.querySelector('.chat-empty-state, .chat-loading');
+            if (emptyState) messagesContainer.innerHTML = '';
+
+            const keys = Object.keys(messages).sort(function(a, b) {
+                return new Date(messages[a].timestamp) - new Date(messages[b].timestamp);
+            });
+
+            let appended = false;
+            keys.forEach(function(key) {
+                if (renderedKeys.has(key)) return;
+                renderedKeys.add(key);
+                messagesContainer.insertAdjacentHTML('beforeend', buildBubbleHtml(key, messages[key]));
+                appended = true;
+            });
+
+            // 24hr prune se hate hue messages ko DOM se bhi hata dein
+            renderedKeys.forEach(function(key) {
+                if (!messages[key]) {
+                    const el = document.getElementById('msgrow-' + key);
+                    if (el) el.remove();
+                    renderedKeys.delete(key);
+                }
+            });
+
+            if (appended) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            updateMessageDetails();
+        }
+
+        // Admin ne padha ya nahi — sirf tick icon update karta hai, poora
+        // message list dobara nahi banata (smooth rehta hai)
+        function updateTicks() {
+            const messages = window.__msgCacheForReply;
+            if (!messages) return;
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (m.sender !== 'user') return;
+                const tickEl = messagesContainer.querySelector('.cb-tick[data-msgkey="' + key + '"]');
+                if (!tickEl) return;
+                const isRead = adminReadUntil && new Date(m.timestamp).getTime() <= new Date(adminReadUntil).getTime();
+                tickEl.textContent = isRead ? '✓✓' : '✓';
+                tickEl.classList.toggle('read', !!isRead);
+            });
+        }
+
+        window.toggleMessageDetails = function(event, key) {
+            if (event) event.stopPropagation();
+            const bubble = document.querySelector('#msgrow-' + key + ' .chat-bubble');
+            if (!bubble) return;
+
+            document.querySelectorAll('.chat-bubble.details-open').forEach(function(el) {
+                if (el !== bubble) el.classList.remove('details-open');
+            });
+
+            bubble.classList.toggle('details-open');
+        }
+
+        function updateMessageDetails() {
+            const messages = window.__msgCacheForReply || {};
+            Object.keys(messages).forEach(function(key) {
+                const info = messagesContainer.querySelector('.message-details[data-details-key="' + key + '"]');
+                if (!info) return;
+
+                const seenTime = getSeenTime(messages[key]);
+                info.innerHTML =
+                    '<div>Sent: ' + formatMessageDateTime(messages[key].timestamp) + '</div>' +
+                    '<div class="' + (seenTime ? 'seen' : 'not-seen') + '">' +
+                    (seenTime ? 'Seen: ' + seenTime : 'Not seen yet') +
+                    '</div>';
+            });
+        }
+
+        // ========================================
+        // REPLY (WhatsApp-style quote reply)
+        // ========================================
+        window.setReply = function(key) {
+            const messages = window.__msgCacheForReply;
+            if (!messages || !messages[key]) return;
+            const m = messages[key];
+            replyingTo = m.text;
+            const preview = m.text.length > 70 ? m.text.slice(0, 70) + '…' : m.text;
+            document.getElementById('replyPreviewText').textContent = '↩️ ' + preview;
+            document.getElementById('replyPreviewBar').classList.add('show');
+            document.getElementById('chatTextInput').focus();
+        };
+
+        document.getElementById('replyPreviewCancel').addEventListener('click', function() {
+            replyingTo = null;
+            document.getElementById('replyPreviewBar').classList.remove('show');
+        });
+
+        // ========================================
+        // SEND TEXT MESSAGE
+        // ========================================
+        function sendChatMessage() {
+            const input = document.getElementById('chatTextInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const sendBtn = document.getElementById('chatSendBtn');
+            sendBtn.disabled = true;
+            input.value = '';
+
+            const msgData = { sender: 'user', text: text, timestamp: new Date().toISOString() };
+            if (replyingTo) {
+                msgData.reply_to = replyingTo;
+                replyingTo = null;
+                document.getElementById('replyPreviewBar').classList.remove('show');
+            }
+
+            chatRef.child('messages').push(msgData).then(function() {
+                return chatRef.update({
+                    user_name: userName,
+                    last_message: text,
+                    last_sender: 'user',
+                    last_timestamp: msgData.timestamp
+                });
+            }).then(function() {
+                sendBtn.disabled = false;
+                showToast('✅ Message sent!');
+                sendTelegramMessage(userName, text, msgData.reply_to || null).catch(function(err) {
+                    console.error('Telegram notification failed:', err);
+                });
+            }).catch(function(err) {
+                console.error('Firebase message send failed:', err);
+                sendBtn.disabled = false;
+                showToast('❌ Message save nahi ho paya, phir try karein.', 'error');
+            });
+        }
+
+        document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+        document.getElementById('chatTextInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+
+        // ========================================
+        // SEND PHOTO — SIRF Telegram pe jaati hai
+        // ========================================
+        document.getElementById('photoBtn').addEventListener('click', function() {
+            document.getElementById('photoInput').click();
+        });
+
+        document.getElementById('photoInput').addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('Photo 10MB se choti honi chahiye!', 'error');
+                this.value = '';
+                return;
+            }
+
+            const photoBtn = document.getElementById('photoBtn');
+            photoBtn.textContent = '⏳';
+            photoBtn.disabled = true;
+
+            const caption = `📩 New Photo - SK Education\n\n👤 From: ${userName}`;
+
+            const msgData = { sender: 'user', text: '📷 Photo bheji gayi', timestamp: new Date().toISOString() };
+            const firebaseSave = chatRef.child('messages').push(msgData).then(function() {
+                return chatRef.update({
+                    user_name: userName,
+                    last_message: '📷 Photo',
+                    last_sender: 'user',
+                    last_timestamp: msgData.timestamp
+                });
+            });
+            const telegramSave = sendTelegramPhoto(caption, file);
+            Promise.allSettled([firebaseSave, telegramSave]).then(function(results) {
+                const firebaseOk = results[0].status === 'fulfilled';
+                const telegramOk = results[1].status === 'fulfilled';
+                if (firebaseOk && telegramOk) showToast('✅ Photo bhej di gayi!');
+                else if (firebaseOk) showToast('✅ Photo chat mein save ho gayi. Telegram notification nahi ja payi.', 'error');
+                else showToast('❌ Photo chat mein save nahi ho payi.', 'error');
+                if (!telegramOk) console.error('Photo Telegram send failed:', results[1].reason);
+                if (!firebaseOk) console.error('Photo Firebase save failed:', results[0].reason);
+            }).finally(function() {
+                photoBtn.textContent = '📷';
+                photoBtn.disabled = false;
+                document.getElementById('photoInput').value = '';
+            });
+        });
+    }
+
+    // ========================================
+    // CHECK MAINTENANCE
+    // ========================================
+    db.ref('settings/maintenance').on('value', function(snap) {
+        if (snap.val() === 'on') {
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0c0c2e,#1a1a3e);color:white;text-align:center;font-family:Arial;padding:20px;">
+                    <div style="padding:50px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:500px;">
+                        <div style="font-size:80px;margin-bottom:20px;">🔒</div>
+                        <h1 style="font-size:36px;">Website Close</h1>
+                        <p style="color:#a5b4fc;">We're updating our content. Please check back soon!</p>
+                    </div>
+                </div>
+            `;
+        }
+    }, function(err) {
+        console.error('Maintenance check failed:', err);
+    });
+
+
+        function toggleChatMenu(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('chatMenu');
+            if (menu) menu.classList.toggle('open');
+        }
+
+        function closeChatMenu() {
+            const menu = document.getElementById('chatMenu');
+            if (menu) menu.classList.remove('open');
+        }
+
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('chatMenu');
+            const btn = document.getElementById('chatMenuBtn');
+            if (menu && !menu.contains(event.target) && event.target !== btn) {
+                menu.classList.remove('open');
+            }
+        });
+
+    // ========================================
+    // LOGOUT
+    // ========================================
+    function logout() {
+        db.ref('chats/' + getUserId()).update({
+            online: false,
+            last_seen: new Date().toISOString()
+        }).catch(function() {}).finally(function() {
+            clearUserName();
+            window.location.href = 'index.html';
+        });
+    }
+
+    window.logout = logout;
+
+    } // end else (logged in)
+    </script>
+</body>
+</html>
