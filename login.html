@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Login - SK Education</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="config.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:linear-gradient(135deg,#0c0c2e 0%,#1a1a3e 50%,#2d1b69 100%);color:#fff;font-family:'Segoe UI',Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{width:min(100%,420px);padding:45px 35px;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border-radius:24px;border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center}
+.logo{font-size:58px;margin-bottom:10px}
+h1{font-size:28px;margin-bottom:6px;background:linear-gradient(90deg,#4cc9f0,#f72585);-webkit-background-clip:text;color:transparent}
+p{color:#a5b4fc;font-size:15px;margin-bottom:25px}
+label{display:block;text-align:left;color:#a5b4fc;font-size:14px;font-weight:600;margin-bottom:7px}
+input{width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#fff;font-size:16px;outline:none;margin-bottom:15px}
+input:focus{border-color:#4361ee;background:rgba(255,255,255,.08)}
+button{width:100%;padding:15px;background:linear-gradient(90deg,#4361ee,#f72585);border:0;border-radius:12px;color:#fff;font-size:18px;font-weight:700;cursor:pointer}
+.err{display:none;color:#f72585;margin-top:12px;font-size:13px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📚</div>
+  <h1>SK Education</h1>
+  <p>Apna naam enter karke chat start karein</p>
+  <form id="loginForm">
+    <label for="name">👤 Your Name</label>
+    <input id="name" type="text" maxlength="60" placeholder="Enter your name" autocomplete="name" required>
+    <button type="submit">🚀 Start Chat</button>
+    <div id="err" class="err"></div>
+  </form>
+</div>
+<script>
+if(getUserName()) location.replace("chat.html");
+document.getElementById("loginForm").addEventListener("submit", e=>{
+  e.preventDefault();
+  const name=document.getElementById("name").value.trim();
+  const err=document.getElementById("err");
+  if(name.length<1){err.textContent="Name enter karein";err.style.display="block";return;}
+  setUserName(name);
+  // Intentionally NO Telegram notification on login.
+  location.replace("chat.html");
+});
+</script>
+</body>
+</html>
