@@ -1443,10 +1443,15 @@
                             <div class="chat-thread-active" id="chatThreadActive" style="display:none;">
                                 <div class="chat-thread-header">
                                     <button class="chat-back-btn" id="chatBackBtn">←</button>
-                                    <div>
-                                        <strong>💬 Chat with Wife 🥰</strong>
-                                        <small id="chatThreadUserName" style="display:block;color:#a5b4fc;font-size:12px;">User</small>
-                                        <small id="chatThreadPresence" style="display:block;font-size:11px;"></small>
+                                    <div class="chat-thread-avatar-wrap" id="openUserProfileBtn" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;min-width:0;">
+                                        <div class="thread-avatar-box">
+                                            <img id="chatThreadAvatar" class="avatar-img" src="" alt="" style="display:none;">
+                                            <div id="chatThreadAvatarFallback" class="avatar-fallback">U</div>
+                                        </div>
+                                        <div style="min-width:0;">
+                                            <small id="chatThreadUserName" style="display:block;color:#a5b4fc;font-size:12px;">User</small>
+                                            <small id="chatThreadPresence" style="display:block;font-size:11px;"></small>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="chat-messages" id="chatMessages"></div>
@@ -1458,6 +1463,8 @@
                                     <input type="text" id="chatLinkTitle" placeholder="🔗 Link title (optional)" class="chat-link-input">
                                     <input type="url" id="chatLinkUrl" placeholder="🔗 Link URL (optional)" class="chat-link-input">
                                     <div style="display:flex;gap:8px;">
+                                        <button id="chatPhotoBtn" class="chat-send-btn" type="button" title="Send photo" style="background:rgba(255,255,255,0.08);">📎</button>
+                                        <input type="file" id="chatPhotoInput" accept="image/*" style="display:none;">
                                         <input type="text" id="chatReplyInput" placeholder="Type a message...">
                                         <button id="chatSendBtn" class="chat-send-btn">➤</button>
                                     </div>
@@ -1467,8 +1474,43 @@
                     </div>
                 </div>
 
+                <!-- USER PROFILE VIEW MODAL -->
+                <div class="profile-modal-overlay" id="userProfileOverlay">
+                    <div class="profile-modal">
+                        <button class="profile-modal-close" id="userProfileClose">✕</button>
+                        <img id="userProfilePhoto" class="profile-modal-photo" src="" alt="" style="display:none;">
+                        <div id="userProfileFallback" class="profile-modal-photo-fallback">U</div>
+                        <h2 id="userProfileName">User</h2>
+                        <p class="profile-modal-about" id="userProfileMeta"></p>
+                    </div>
+                </div>
+
+                <!-- PHOTO LIGHTBOX -->
+                <div class="lightbox-overlay" id="adminLightboxOverlay">
+                    <img id="adminLightboxImg" src="" alt="">
+                </div>
+
+
                 <!-- TAB: SETTINGS -->
                 <div id="tab-settings" class="admin-tab-content">
+                    <div class="admin-card">
+                        <h3>👤 My Profile</h3>
+                        <p style="color:#a5b4fc;font-size:13px;margin-bottom:14px;">Ye naam/photo sabhi users ke chat header mein dikhta hai.</p>
+                        <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+                            <label class="profile-photo-upload" for="adminProfilePhotoInput" style="width:90px;height:90px;flex-shrink:0;margin:0;">
+                                <img id="adminProfilePhotoPreview" src="" alt="" style="display:none;">
+                                <div id="adminProfilePhotoFallback" class="profile-modal-photo-fallback" style="width:100%;height:100%;font-size:32px;">A</div>
+                                <span class="profile-photo-edit-badge">📷</span>
+                            </label>
+                            <input type="file" id="adminProfilePhotoInput" accept="image/*" style="display:none;">
+                            <div style="flex:1;min-width:220px;">
+                                <input type="text" id="adminProfileName" class="profile-edit-input" style="text-align:left;margin-bottom:10px;" placeholder="Your name (e.g. Admin)">
+                                <textarea id="adminProfileAbout" class="profile-edit-input" style="text-align:left;resize:vertical;min-height:60px;font-family:inherit;" placeholder="About (e.g. Available)"></textarea>
+                            </div>
+                        </div>
+                        <button id="adminProfileSaveBtn" class="btn-primary" style="margin-top:14px;">💾 Save Profile</button>
+                    </div>
+
                     <div class="admin-card">
                         <h3>⚙️ Settings</h3>
                         <div class="setting-item">
@@ -1645,11 +1687,22 @@
                 const activeClass = entry.uid === activeChatUserId ? 'active' : '';
                 const unreadClass = isUnread(d) ? 'unread' : '';
                 const time = d.last_timestamp ? new Date(d.last_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                const initial = ((d.user_name || 'U').charAt(0) || 'U').toUpperCase();
+                const avatarHtml = d.user_photo
+                    ? `<img src="${d.user_photo}" class="chat-list-avatar" alt="">`
+                    : `<div class="chat-list-avatar-fallback">${initial}</div>`;
                 html += `
                     <div class="chat-list-item ${activeClass} ${unreadClass}" onclick="openChatThread('${entry.uid}')">
-                        <span class="clu-time">${time}</span>
-                        <div class="clu-name">${d.online ? '<span class="clu-online-dot"></span>' : ''}${d.user_name || 'Unknown'}${isUnread(d) ? '<span class="clu-unread-badge"></span>' : ''}</div>
-                        <div class="clu-preview">${d.last_sender === 'admin' ? 'You: ' : ''}${preview}</div>
+                        <div class="clu-row">
+                            ${avatarHtml}
+                            <div class="clu-body">
+                                <div class="clu-top">
+                                    <div class="clu-name">${d.online ? '<span class="clu-online-dot"></span>' : ''}${d.user_name || 'Unknown'}${isUnread(d) ? '<span class="clu-unread-badge"></span>' : ''}</div>
+                                    <span class="clu-time">${time}</span>
+                                </div>
+                                <div class="clu-preview">${d.last_sender === 'admin' ? 'You: ' : ''}${preview}</div>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
@@ -1667,6 +1720,7 @@
             document.getElementById('chatThreadEmpty').style.display = 'none';
             document.getElementById('chatThreadActive').style.display = 'flex';
             document.getElementById('chatThreadUserName').textContent = (chatsCache[uid] && chatsCache[uid].user_name) || 'User';
+            updateThreadAvatar(uid);
             renderChatList();
 
             // Purana thread listener hatao — SAHI uid aur SAHI path se, warna
@@ -1694,6 +1748,8 @@
                 currentChatMeta = data; // Seen details ke liye latest read timestamps yahin se lo.
                 renderPresence(data);
                 updateAdminMessageDetails();
+                chatsCache[uid] = Object.assign({}, chatsCache[uid], data);
+                updateThreadAvatar(uid);
 
                 if (data.last_sender === 'user' && activeChatUserId === uid) {
                     const now = new Date().toISOString();
@@ -1721,6 +1777,118 @@
                 document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">❌ Messages load nahi ho paaye. Firebase/Internet check karein.</div>';
             });
         }
+
+        // Thread header ka avatar (user ki photo/initial) update karta hai
+        function updateThreadAvatar(uid) {
+            const d = chatsCache[uid] || {};
+            const img = document.getElementById('chatThreadAvatar');
+            const fallback = document.getElementById('chatThreadAvatarFallback');
+            const initial = ((d.user_name || 'U').charAt(0) || 'U').toUpperCase();
+            if (d.user_photo) {
+                img.src = d.user_photo;
+                img.style.display = 'block';
+                fallback.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                fallback.style.display = 'flex';
+                fallback.textContent = initial;
+            }
+        }
+
+        // Header tap -> is user ki profile dikhao (WhatsApp jaisa contact info)
+        document.getElementById('openUserProfileBtn').addEventListener('click', function() {
+            if (!activeChatUserId) return;
+            const d = chatsCache[activeChatUserId] || {};
+            const initial = ((d.user_name || 'U').charAt(0) || 'U').toUpperCase();
+            document.getElementById('userProfileName').textContent = d.user_name || 'Unknown';
+            document.getElementById('userProfileMeta').textContent = d.online ? '🟢 Online' : (d.last_seen ? 'Last seen: ' + formatLastSeen(d.last_seen) : '');
+            const photoEl = document.getElementById('userProfilePhoto');
+            const fallbackEl = document.getElementById('userProfileFallback');
+            if (d.user_photo) {
+                photoEl.src = d.user_photo;
+                photoEl.style.display = 'block';
+                fallbackEl.style.display = 'none';
+            } else {
+                photoEl.style.display = 'none';
+                fallbackEl.style.display = 'flex';
+                fallbackEl.textContent = initial;
+            }
+            document.getElementById('userProfileOverlay').classList.add('show');
+        });
+        document.getElementById('userProfileClose').addEventListener('click', function() {
+            document.getElementById('userProfileOverlay').classList.remove('show');
+        });
+        document.getElementById('userProfileOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+
+        // ========================================
+        // PHOTO LIGHTBOX (admin side)
+        // ========================================
+        function openAdminLightbox(src) {
+            document.getElementById('adminLightboxImg').src = src;
+            document.getElementById('adminLightboxOverlay').classList.add('show');
+        }
+        window.openAdminLightbox = openAdminLightbox;
+        document.getElementById('adminLightboxOverlay').addEventListener('click', function() {
+            this.classList.remove('show');
+        });
+
+        // ========================================
+        // MY PROFILE (admin ka naam/photo/about) — Settings tab
+        // ========================================
+        let pendingAdminProfilePhoto = null;
+        loadAdminProfile().then(function(profile) {
+            document.getElementById('adminProfileName').value = profile.name;
+            document.getElementById('adminProfileAbout').value = profile.about;
+            const preview = document.getElementById('adminProfilePhotoPreview');
+            const fallback = document.getElementById('adminProfilePhotoFallback');
+            if (profile.photo) {
+                preview.src = profile.photo;
+                preview.style.display = 'block';
+                fallback.style.display = 'none';
+            } else {
+                fallback.textContent = (profile.name.charAt(0) || 'A').toUpperCase();
+            }
+        }).catch(function(err) {
+            console.error('Admin profile load failed:', err);
+        });
+
+        document.getElementById('adminProfilePhotoInput').addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            if (!file) return;
+            compressImageToBase64(file, 400, 0.75).then(function(base64) {
+                pendingAdminProfilePhoto = base64;
+                const preview = document.getElementById('adminProfilePhotoPreview');
+                preview.src = base64;
+                preview.style.display = 'block';
+                document.getElementById('adminProfilePhotoFallback').style.display = 'none';
+            }).catch(function(err) {
+                console.error('Photo compress failed:', err);
+                showToast('❌ Photo process nahi ho payi', 'error');
+            });
+        });
+
+        document.getElementById('adminProfileSaveBtn').addEventListener('click', function() {
+            const name = document.getElementById('adminProfileName').value.trim() || 'Admin';
+            const about = document.getElementById('adminProfileAbout').value.trim() || 'Available';
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
+            const updateData = { name: name, about: about };
+            if (pendingAdminProfilePhoto) updateData.photo = pendingAdminProfilePhoto;
+
+            updateAdminProfile(updateData).then(function() {
+                showToast('✅ Profile update ho gayi!');
+            }).catch(function(err) {
+                console.error('Admin profile save failed:', err);
+                showToast('❌ Profile save nahi ho payi', 'error');
+            }).finally(function() {
+                btn.disabled = false;
+                btn.textContent = '💾 Save Profile';
+            });
+        });
 
         function markUserMessagesSeen(uid, messages) {
             messages = messages || currentThreadMessages || {};
@@ -1810,12 +1978,16 @@
                     </div>
                 </div>`;
 
+            const bodyHtml = m.type === 'photo' && m.photo
+                ? `<img src="${m.photo}" class="chat-photo-msg" onclick="event.stopPropagation();openAdminLightbox('${m.photo}')" alt="Photo">`
+                : `<div>${m.text}</div>`;
+
             return `
                 <div class="chat-row ${rowCls}" id="admmsgrow-${key}">
                     ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
                     <div class="chat-bubble" onclick="toggleAdminMessageDetails(event, '${key}')">
                         ${quotePreview ? `<div class="cb-quote">${quotePreview}</div>` : ''}
-                        <div>${m.text}</div>
+                        ${bodyHtml}
                         ${m.link_url ? `<div><a href="${m.link_url}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${m.link_title || 'Open Link'}</a></div>` : ''}
                         <div class="cb-time">${time}</div>
                         ${details}
@@ -1892,8 +2064,9 @@
         function setAdminReply(key) {
             const m = currentThreadMessages[key];
             if (!m) return;
-            adminReplyingTo = m.text;
-            const preview = m.text.length > 70 ? m.text.slice(0, 70) + '…' : m.text;
+            const replyText = (m.type === 'photo') ? '📷 Photo' : (m.text || '');
+            adminReplyingTo = replyText;
+            const preview = replyText.length > 70 ? replyText.slice(0, 70) + '…' : replyText;
             document.getElementById('adminReplyPreviewText').textContent = '↩️ ' + preview;
             document.getElementById('adminReplyPreviewBar').classList.add('show');
             document.getElementById('chatReplyInput').focus();
@@ -1962,6 +2135,52 @@
         document.getElementById('chatSendBtn').addEventListener('click', sendAdminReply);
         document.getElementById('chatReplyInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') sendAdminReply();
+        });
+
+        // ========================================
+        // SEND PHOTO (admin -> user) — Firebase mein chat bubble ke
+        // roop mein save hota hai, seedha user ki chat mein dikhta hai.
+        // ========================================
+        document.getElementById('chatPhotoBtn').addEventListener('click', function() {
+            if (!activeChatUserId) { showToast('Pehle ek chat kholein', 'error'); return; }
+            document.getElementById('chatPhotoInput').click();
+        });
+
+        document.getElementById('chatPhotoInput').addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            const uid = activeChatUserId;
+            if (!file || !uid) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('Photo 10MB se choti honi chahiye!', 'error');
+                this.value = '';
+                return;
+            }
+
+            const btn = document.getElementById('chatPhotoBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳';
+            clearAdminTyping();
+
+            compressImageToBase64(file, 1280, 0.72).then(function(base64) {
+                const msgData = { sender: 'admin', type: 'photo', photo: base64, text: '', timestamp: new Date().toISOString() };
+                return db.ref('chats/' + uid + '/messages').push(msgData).then(function() {
+                    return db.ref('chats/' + uid).update({
+                        last_message: '📷 Photo',
+                        last_sender: 'admin',
+                        last_timestamp: msgData.timestamp
+                    });
+                });
+            }).then(function() {
+                showToast('✅ Photo bhej di gayi!');
+            }).catch(function(err) {
+                console.error('Admin photo send failed:', err);
+                showToast('❌ Photo bhejne mein error aayi', 'error');
+            }).finally(function() {
+                btn.disabled = false;
+                btn.textContent = '📎';
+                document.getElementById('chatPhotoInput').value = '';
+            });
         });
 
         // ========================================
@@ -2202,5 +2421,117 @@ window.openAdminSettings=openAdminSettings;
 @keyframes typingBounce {
     0%, 60%, 100% { transform: translateY(0); opacity: .5; }
     30% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* ===== AVATAR ===== */
+.thread-avatar-box { width: 38px; height: 38px; flex: 0 0 38px; position: relative; }
+.avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; display: block; }
+.avatar-fallback {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #4361ee, #f72585);
+    color: #fff; font-weight: 700; font-size: 15px;
+}
+.chat-list-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.chat-list-avatar-fallback {
+    width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #4361ee, #f72585);
+    color: #fff; font-weight: 700; font-size: 16px;
+}
+.clu-row { display: flex; align-items: center; gap: 12px; }
+.clu-body { flex: 1; min-width: 0; }
+.clu-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.clu-row .clu-name { margin-bottom: 2px; }
+.clu-row .clu-time { float: none !important; flex-shrink: 0; }
+.clu-row .clu-preview { max-width: none !important; display: block !important; }
+
+/* ===== PROFILE MODAL ===== */
+.profile-modal-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; opacity: 0; transition: opacity .25s ease;
+}
+.profile-modal-overlay.show { display: flex; opacity: 1; }
+.profile-modal {
+    position: relative; width: min(100%, 360px);
+    background: #1a1a3e; border-radius: 20px; padding: 34px 26px 26px;
+    text-align: center; border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 25px 70px rgba(0,0,0,.5);
+    transform: scale(.92); transition: transform .25s ease;
+}
+.profile-modal-overlay.show .profile-modal { transform: scale(1); }
+.profile-modal-close {
+    position: absolute; top: 12px; right: 12px;
+    width: 32px; height: 32px; border: none; border-radius: 50%;
+    background: rgba(255,255,255,.08); color: #cbd6db; font-size: 15px; cursor: pointer;
+}
+.profile-modal-photo {
+    width: 140px; height: 140px; border-radius: 50%; object-fit: cover;
+    margin: 0 auto 16px; display: block; border: 3px solid rgba(67,97,238,.4);
+}
+.profile-modal-photo-fallback {
+    width: 140px; height: 140px; border-radius: 50%;
+    margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #4361ee, #f72585);
+    color: #fff; font-size: 52px; font-weight: 700;
+}
+.profile-modal h2 { font-size: 21px; color: #fff; margin-bottom: 8px; }
+.profile-modal-about { color: #a5b4fc; font-size: 14px; line-height: 1.5; }
+
+.profile-photo-upload {
+    position: relative; display: block;
+    width: 120px; height: 120px; border-radius: 50%;
+    margin: 0 auto 18px; cursor: pointer; overflow: hidden;
+    background: rgba(255,255,255,.05); border: 2px dashed rgba(255,255,255,.15);
+}
+.profile-photo-upload img { width: 100%; height: 100%; object-fit: cover; }
+.profile-photo-edit-badge {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #4361ee; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; border: 2px solid #1a1a3e;
+}
+.profile-edit-input {
+    width: 100%; padding: 12px 15px; border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05);
+    color: white; font-size: 14px; text-align: center;
+}
+.profile-edit-input::placeholder { color: #6a7a9e; }
+.profile-edit-input:focus { outline: none; border-color: #4361ee; }
+
+/* ===== PHOTO MESSAGE BUBBLE ===== */
+.chat-photo-msg {
+    display: block; max-width: 100%; border-radius: 10px;
+    margin-bottom: 4px; cursor: pointer; max-height: 320px; object-fit: cover;
+}
+
+/* ===== LIGHTBOX ===== */
+.lightbox-overlay {
+    position: fixed; inset: 0; z-index: 6000;
+    background: rgba(0,0,0,.92);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.lightbox-overlay.show { display: flex; }
+.lightbox-overlay img { max-width: 100%; max-height: 100%; border-radius: 6px; }
+
+/* Thread header naam ab primary title hai (pehle "strong" tag ke
+   neeche subtitle tha, ab wo tag hata diya gaya hai) */
+.chat-thread-header #chatThreadUserName,
+.chat-layout.thread-open .chat-thread-header small#chatThreadUserName {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #eef4ff !important;
+    margin-top: 0 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.chat-thread-header #chatThreadPresence,
+.chat-layout.thread-open .chat-thread-header small#chatThreadPresence {
+    font-size: 12px !important;
+    color: #8696a0 !important;
 }
 </style>

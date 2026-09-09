@@ -1023,10 +1023,73 @@ function showWhatsAppPopup() {
 })();
 
 // ============================================
-// GLOBAL EXPORTS
+// FORMAT LAST SEEN — "5 min ago", "2 hr ago" jaisa human-readable
+// time dikhata hai. Pehle ye sirf index.html mein tha, admin.html
+// isi function ko use karta tha lekin define nahi kiya tha (bug) —
+// ab yahan config.js mein rakh diya taaki dono jagah kaam kare.
 // ============================================
+function formatLastSeen(ts) {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return 'recently';
+    const min = Math.floor(Math.max(0, Date.now() - d.getTime()) / 60000);
+    if (min < 1) return 'just now';
+    if (min < 60) return min + ' min ago';
+    const hrs = Math.floor(min / 60);
+    if (hrs < 24) return hrs + ' hr ago';
+    return d.toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
 
-window.db = db;
+
+// base64 banata hai, taaki Firebase RTDB mein directly store ho
+// sake (chat photos + profile photos dono ke liye).
+// ============================================
+function compressImageToBase64(file, maxDim, quality) {
+    maxDim = maxDim || 1024;
+    quality = quality || 0.72;
+    return new Promise(function(resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w >= h) { h = Math.round(h * maxDim / w); w = maxDim; }
+                    else { w = Math.round(w * maxDim / h); h = maxDim; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = function() { reject(new Error('Image load failed')); };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() { reject(new Error('File read failed')); };
+        reader.readAsDataURL(file);
+    });
+}
+
+// ============================================
+// ADMIN PROFILE (naam/photo/about) — sabhi users ke chat header
+// mein yahi dikhta hai, isliye ek hi jagah (admin_profile node) rakha.
+// ============================================
+function loadAdminProfile() {
+    return db.ref('admin_profile').once('value').then(function(snap) {
+        const data = snap.val() || {};
+        return {
+            name: data.name || 'Admin',
+            photo: data.photo || '',
+            about: data.about || 'Hey there! I am using SK Education chat.'
+        };
+    });
+}
+
+function updateAdminProfile(data) {
+    return db.ref('admin_profile').update(data);
+}
+
+
 
 window.getUserName =
     getUserName;
@@ -1036,6 +1099,9 @@ window.setUserName =
 
 window.clearUserName =
     clearUserName;
+
+window.db =
+    db;
 
 window.isUserLoggedIn =
     isUserLoggedIn;
@@ -1129,6 +1195,18 @@ window.showMessageAdminModal =
 
 window.showWhatsAppPopup =
     showWhatsAppPopup;
+
+window.compressImageToBase64 =
+    compressImageToBase64;
+
+window.loadAdminProfile =
+    loadAdminProfile;
+
+window.updateAdminProfile =
+    updateAdminProfile;
+
+window.formatLastSeen =
+    formatLastSeen;
 
 console.log(
     "✅ SK Education Config Loaded!"

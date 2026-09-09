@@ -98,30 +98,16 @@ body{
   align-items:center;
   gap:12px;
 }
-.header-left:before{
-  content:"‹";
-  display:grid;
-  place-items:center;
-  width:34px;height:42px;
-  color:#dce5f3;
-  font-size:40px;
-  line-height:1;
-  font-weight:300;
-}
 .logo-icon{display:none}
 .header-left>div:last-child{min-width:0}
 .header-left h2{
-  font-size:21px;
+  font-size:19px;
   line-height:1.1;
   font-weight:800;
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  font-size:0;
-}
-.header-left h2:after{
-  content:"SK Education";
-  font-size:20px;
+  color:#e9edef;
 }
 .header-left small{
   display:block;
@@ -397,7 +383,7 @@ body{
 @media(max-width:450px){
   #chatApp{height:100dvh;min-height:100vh}
   #chatApp>.header{height:82px;flex-basis:82px;padding:10px 15px}
-  .header-left h2:after{font-size:19px}
+  .header-left h2{font-size:19px}
   .header-left small{font-size:11px;margin-top:5px}
   .icon-btn,.header-right .logout-link{width:40px;height:40px;border-radius:13px}
   .chat-messages{padding:18px 20px 16px}
@@ -578,13 +564,12 @@ body {
         gap: 7px !important;
     }
 
-    .header-left:before {
-        width: 28px !important;
-        font-size: 35px !important;
+    .avatar-wrap, .avatar-img, .avatar-fallback {
+        width: 36px !important; height: 36px !important; flex-basis: 36px !important;
     }
 
-    .header-left h2:after {
-        font-size: 18px !important;
+    .header-left h2 {
+        font-size: 17px !important;
     }
 
     .header-left small {
@@ -897,13 +882,12 @@ html, body {
         gap:6px !important;
     }
 
-    .header-left:before {
-        width:27px !important;
-        font-size:34px !important;
+    .avatar-wrap, .avatar-img, .avatar-fallback {
+        width:34px !important; height:34px !important; flex-basis:34px !important;
     }
 
-    .header-left h2:after {
-        font-size:18px !important;
+    .header-left h2 {
+        font-size:17px !important;
     }
 
     .header-left small {
@@ -964,8 +948,7 @@ html, body {
     border-bottom: none !important;
     box-shadow: 0 1px 3px rgba(0,0,0,.4) !important;
 }
-.header-left:before { color: #aebac1 !important; }
-.header-left h2:after { color: #e9edef !important; }
+.header-left h2 { color: #e9edef !important; }
 .header-left small { color: #8696a0 !important; font-weight: 500 !important; }
 .icon-btn,
 .header-right .menu-trigger {
@@ -1063,44 +1046,120 @@ html, body {
     30% { transform: translateY(-3px); opacity: 1; }
 }
 
-/* Menu + lock screen accents */
+/* ===== AVATAR (header + chat list) ===== */
+.avatar-wrap { position: relative; width: 42px; height: 42px; flex: 0 0 42px; }
+.avatar-img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; display: block; }
+.avatar-fallback {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #00a884, #008069);
+    color: #fff; font-weight: 700; font-size: 17px;
+}
+#openAdminProfileBtn { cursor: pointer; }
+#openAdminProfileBtn:active { opacity: .8; }
+
+/* ===== PROFILE MODAL (view + edit) ===== */
+.profile-modal-overlay {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px; opacity: 0; transition: opacity .25s ease;
+}
+.profile-modal-overlay.show { display: flex; opacity: 1; }
+.profile-modal {
+    position: relative;
+    width: min(100%, 360px);
+    background: #1f2c34;
+    border-radius: 20px;
+    padding: 34px 26px 26px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 25px 70px rgba(0,0,0,.5);
+    transform: scale(.92); transition: transform .25s ease;
+}
+.profile-modal-overlay.show .profile-modal { transform: scale(1); }
+.profile-modal-close {
+    position: absolute; top: 12px; right: 12px;
+    width: 32px; height: 32px; border: none; border-radius: 50%;
+    background: rgba(255,255,255,.08); color: #cbd6db; font-size: 15px; cursor: pointer;
+}
+.profile-modal-photo {
+    width: 140px; height: 140px; border-radius: 50%; object-fit: cover;
+    margin: 0 auto 16px; display: block; border: 3px solid rgba(0,168,132,.4);
+}
+.profile-modal-photo-fallback {
+    width: 140px; height: 140px; border-radius: 50%;
+    margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #00a884, #008069);
+    color: #fff; font-size: 52px; font-weight: 700;
+}
+.profile-modal h2 { font-size: 21px; color: #e9edef; margin-bottom: 8px; }
+.profile-modal-about { color: #8696a0; font-size: 14px; line-height: 1.5; }
+
+/* Edit profile photo picker */
+.profile-photo-upload {
+    position: relative; display: block;
+    width: 120px; height: 120px; border-radius: 50%;
+    margin: 0 auto 18px; cursor: pointer; overflow: hidden;
+    background: rgba(255,255,255,.05); border: 2px dashed rgba(255,255,255,.15);
+}
+.profile-photo-upload img { width: 100%; height: 100%; object-fit: cover; }
+.profile-photo-edit-badge {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #00a884; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; border: 2px solid #1f2c34;
+}
+.profile-edit-input {
+    width: 100%; padding: 13px 16px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.05);
+    color: white; font-size: 15px; text-align: center;
+}
+.profile-edit-input::placeholder { color: #71829a; }
+.profile-edit-input:focus { outline: none; border-color: #00a884; }
+
+/* ===== PHOTO MESSAGE BUBBLE ===== */
+.chat-photo-msg {
+    display: block; max-width: 100%; border-radius: 10px;
+    margin-bottom: 4px; cursor: pointer; max-height: 320px; object-fit: cover;
+}
+
+/* ===== LIGHTBOX (tap photo to view full) ===== */
+.lightbox-overlay {
+    position: fixed; inset: 0; z-index: 6000;
+    background: rgba(0,0,0,.92);
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.lightbox-overlay.show { display: flex; }
+.lightbox-overlay img { max-width: 100%; max-height: 100%; border-radius: 6px; }
+
+/* Menu + button accents */
 .chat-menu { background: #233138 !important; border-color: rgba(255,255,255,.08) !important; }
 .lock-btn { background: #00a884 !important; }
 </style>
 </head>
 <body>
 
-    <!-- ===== LOCK SCREEN ===== -->
-    <div id="lockScreen">
-        <div class="lock-container">
-            <div class="lock-icon">🔒</div>
-            <h2>Protected Message</h2>
-            <p>Ye chat sirf password se khulti hai</p>
-            <form id="unlockForm">
-                <input type="password" id="unlockPassword" placeholder="Password daalein" required autocomplete="off">
-                <button type="submit" class="lock-btn">🔓 Unlock</button>
-                <div id="unlockError" class="lock-error">❌ Galat password!</div>
-            </form>
-            <a href="#" id="lockBackLink" class="lock-back-link">← Logout</a>
-        </div>
-    </div>
-
-    <!-- ===== CHAT APP ===== -->
+    <!-- ===== CHAT APP (login ke baad seedha yahi khulta hai) ===== -->
     <div id="chatApp">
-        <!-- HEADER -->
+        <!-- HEADER — dusre vyakti (Admin) ki profile, tap karne par profile khulti hai -->
         <div class="header">
-            <div class="header-left">
-                <div class="logo-icon">SK</div>
+            <div class="header-left" id="openAdminProfileBtn">
+                <div class="avatar-wrap">
+                    <img id="headerAvatar" class="avatar-img" src="" alt="" style="display:none;">
+                    <div id="headerAvatarFallback" class="avatar-fallback">A</div>
+                </div>
                 <div>
-                    <h2>💬 Message</h2>
-                    <small id="headerSub">Chat with husband</small>
+                    <h2 id="headerName">Admin</h2>
+                    <small id="headerSub">Chat with Admin</small>
                 </div>
             </div>
             <div class="header-right">
-                <span class="icon-btn" id="userDisplay" style="cursor:default;">👋 User</span>
                 <button type="button" class="notify-husband-btn" id="notifyHusbandBtn" onclick="notifyYourHusband()">💌 Notify Your Husband</button>
                 <button type="button" class="logout-link menu-trigger" id="chatMenuBtn" onclick="toggleChatMenu(event)" aria-label="More options">⋮</button>
                 <div class="chat-menu" id="chatMenu">
+                    <button type="button" onclick="closeChatMenu(); openEditProfile();">✏️ Edit Profile</button>
                     <button type="button" onclick="closeChatMenu(); logout();">🚪 Logout</button>
                 </div>
             </div>
@@ -1119,11 +1178,43 @@ html, body {
 
         <!-- INPUT BAR -->
         <div class="chat-input-bar">
-            <button class="chat-photo-btn" id="photoBtn" title="Send photo">📷</button>
+            <button class="chat-photo-btn" id="photoBtn" title="Send photo">📎</button>
             <input type="file" id="photoInput" accept="image/*" style="display:none;">
             <input type="text" id="chatTextInput" placeholder="Type a message...">
             <button class="chat-send-btn" id="chatSendBtn">➤</button>
         </div>
+    </div>
+
+    <!-- ===== PROFILE VIEW MODAL (Admin ki profile — read only) ===== -->
+    <div class="profile-modal-overlay" id="profileViewOverlay">
+        <div class="profile-modal">
+            <button class="profile-modal-close" id="profileViewClose">✕</button>
+            <img id="profileViewPhoto" class="profile-modal-photo" src="" alt="">
+            <div id="profileViewFallback" class="profile-modal-photo-fallback">A</div>
+            <h2 id="profileViewName">Admin</h2>
+            <p class="profile-modal-about" id="profileViewAbout">Hey there! I am using SK Education chat.</p>
+        </div>
+    </div>
+
+    <!-- ===== EDIT PROFILE MODAL (apni profile — naam + photo) ===== -->
+    <div class="profile-modal-overlay" id="editProfileOverlay">
+        <div class="profile-modal">
+            <button class="profile-modal-close" id="editProfileClose">✕</button>
+            <h3 style="margin-bottom:16px;">Edit Profile</h3>
+            <label class="profile-photo-upload" for="editProfilePhotoInput">
+                <img id="editProfilePhotoPreview" src="" alt="" style="display:none;">
+                <div id="editProfilePhotoFallback" class="profile-modal-photo-fallback" style="width:100%;height:100%;font-size:40px;">👤</div>
+                <span class="profile-photo-edit-badge">📷</span>
+            </label>
+            <input type="file" id="editProfilePhotoInput" accept="image/*" style="display:none;">
+            <input type="text" id="editProfileName" class="profile-edit-input" placeholder="Your name" maxlength="40">
+            <button type="button" class="lock-btn" id="editProfileSaveBtn" style="width:100%;margin-top:14px;">💾 Save</button>
+        </div>
+    </div>
+
+    <!-- ===== PHOTO LIGHTBOX ===== -->
+    <div class="lightbox-overlay" id="lightboxOverlay">
+        <img id="lightboxImg" src="" alt="">
     </div>
 
     <script>
@@ -1136,13 +1227,8 @@ html, body {
         window.location.href = 'login.html';
     } else {
 
-    document.getElementById('userDisplay').textContent = '👋 ' + userName;
-
-    document.getElementById('lockBackLink').addEventListener('click', function(e) {
-        e.preventDefault();
-        clearUserName();
-        window.location.href = 'login.html';
-    });
+    // Header mein ab sirf Admin ki profile dikhti hai (apna naam
+    // "Edit Profile" modal se dikh/change ho sakta hai).
 
     // "Notify Your Husband" — ek tap par Telegram notification.
     function notifyYourHusband() {
@@ -1163,57 +1249,14 @@ html, body {
     window.notifyYourHusband = notifyYourHusband;
 
     // ========================================
-    // PASSWORD LOCK — har baar mangta hai, admin panel se reset ho sakta hai
+    // Login ke baad seedha chat khulti hai — koi extra password
+    // screen nahi (pehle yahan ek password-lock step tha, hata diya).
     // ========================================
-    document.getElementById('lockScreen').style.display = 'flex';
-
-    document.getElementById('unlockForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = e.target;
-        const input = document.getElementById('unlockPassword');
-        const entered = input.value.trim();
-        const errorDiv = document.getElementById('unlockError');
-        const submitBtn = form.querySelector('button[type="submit"]');
-        if (!entered) { input.focus(); return; }
-
-        errorDiv.style.display = 'none';
-        submitBtn.disabled = true;
-        submitBtn.textContent = '⏳ Checking...';
-
-        Promise.resolve()
-            .then(function() { return loadAnnouncementPassword(); })
-            .then(function(correctPassword) {
-                if (entered === String(correctPassword)) {
-                    document.getElementById('lockScreen').style.display = 'none';
-                    document.getElementById('chatApp').style.display = 'flex';
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = '🔓 Unlock';
-                    initChat();
-                    // Telegram notification ONLY after password unlock succeeds.
-                    if (typeof sendAnnouncementOpenNotification === 'function') {
-                        sendAnnouncementOpenNotification(userName).catch(function(err) {
-                            console.error('Announcement unlock notification failed:', err);
-                        });
-                    }
-                } else {
-                    throw new Error('WRONG_PASSWORD');
-                }
-            })
-            .catch(function(err) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '🔓 Unlock';
-                console.error('Message unlock failed:', err);
-                errorDiv.textContent = err && err.message === 'WRONG_PASSWORD'
-                    ? '❌ Galat password!'
-                    : '⚠️ Password check nahi ho paaya. Internet/Firebase check karein.';
-                errorDiv.style.display = 'block';
-                input.value = '';
-                input.focus();
-            });
-    });
+    document.getElementById('chatApp').style.display = 'flex';
+    initChat();
 
     // ========================================
-    // CHAT (sirf unlock hone ke baad init hoti hai)
+    // CHAT
     // ========================================
     function initChat() {
         const myUserId = getUserId();
@@ -1226,16 +1269,8 @@ html, body {
         let messagesLoaded = false;
         let loadingTimer = null;
 
-        function formatLastSeen(ts) {
-            const d = new Date(ts);
-            if (isNaN(d.getTime())) return 'recently';
-            const min = Math.floor(Math.max(0, Date.now() - d.getTime()) / 60000);
-            if (min < 1) return 'just now';
-            if (min < 60) return min + ' min ago';
-            const hrs = Math.floor(min / 60);
-            if (hrs < 24) return hrs + ' hr ago';
-            return d.toLocaleString([], {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
-        }
+        // formatLastSeen() ab config.js mein shared function hai (admin.html
+        // bhi isi ko use karta hai).
 
         function pruneOldChatMessages(uid, messages) {
             if (!messages) return;
@@ -1289,8 +1324,9 @@ html, body {
         });
 
         // Admin (husband) ka online/last-seen status — header mein dikhta hai
-        let adminPresenceText = 'Chat with husband';
+        let adminPresenceText = 'Chat with Admin';
         let isAdminTyping = false;
+        let currentAdminProfile = { name: 'Admin', photo: '', about: 'Hey there! I am using SK Education chat.' };
 
         function renderHeaderSub() {
             const el = document.getElementById('headerSub');
@@ -1301,6 +1337,136 @@ html, body {
             }
         }
 
+        // Admin ki profile (naam/photo/about) — header aur profile-view
+        // modal dono isi se live update hote hain.
+        db.ref('admin_profile').on('value', function(snap) {
+            const data = snap.val() || {};
+            currentAdminProfile.name = data.name || 'Admin';
+            currentAdminProfile.photo = data.photo || '';
+            currentAdminProfile.about = data.about || 'Hey there! I am using SK Education chat.';
+
+            document.getElementById('headerName').textContent = currentAdminProfile.name;
+            const headerAvatar = document.getElementById('headerAvatar');
+            const headerFallback = document.getElementById('headerAvatarFallback');
+            if (currentAdminProfile.photo) {
+                headerAvatar.src = currentAdminProfile.photo;
+                headerAvatar.style.display = 'block';
+                headerFallback.style.display = 'none';
+            } else {
+                headerAvatar.style.display = 'none';
+                headerFallback.style.display = 'flex';
+                headerFallback.textContent = currentAdminProfile.name.charAt(0).toUpperCase();
+            }
+        });
+
+        // Header tap -> Admin ki profile dikhao (WhatsApp jaisa contact info)
+        document.getElementById('openAdminProfileBtn').addEventListener('click', function() {
+            document.getElementById('profileViewName').textContent = currentAdminProfile.name;
+            document.getElementById('profileViewAbout').textContent = currentAdminProfile.about;
+            const photoEl = document.getElementById('profileViewPhoto');
+            const fallbackEl = document.getElementById('profileViewFallback');
+            if (currentAdminProfile.photo) {
+                photoEl.src = currentAdminProfile.photo;
+                photoEl.style.display = 'block';
+                fallbackEl.style.display = 'none';
+            } else {
+                photoEl.style.display = 'none';
+                fallbackEl.style.display = 'flex';
+                fallbackEl.textContent = currentAdminProfile.name.charAt(0).toUpperCase();
+            }
+            document.getElementById('profileViewOverlay').classList.add('show');
+        });
+        document.getElementById('profileViewClose').addEventListener('click', function() {
+            document.getElementById('profileViewOverlay').classList.remove('show');
+        });
+        document.getElementById('profileViewOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+
+        // ========================================
+        // EDIT PROFILE (apni naam + photo) — chats/{uid} mein save hota hai
+        // ========================================
+        let pendingProfilePhoto = null; // naya base64 photo jab tak save na ho
+        function openEditProfile() {
+            document.getElementById('editProfileName').value = userName;
+            pendingProfilePhoto = null;
+            chatRef.once('value').then(function(snap) {
+                const data = snap.val() || {};
+                const preview = document.getElementById('editProfilePhotoPreview');
+                const fallback = document.getElementById('editProfilePhotoFallback');
+                if (data.user_photo) {
+                    preview.src = data.user_photo;
+                    preview.style.display = 'block';
+                    fallback.style.display = 'none';
+                } else {
+                    preview.style.display = 'none';
+                    fallback.style.display = 'flex';
+                }
+            });
+            document.getElementById('editProfileOverlay').classList.add('show');
+        }
+        window.openEditProfile = openEditProfile;
+
+        document.getElementById('editProfileClose').addEventListener('click', function() {
+            document.getElementById('editProfileOverlay').classList.remove('show');
+        });
+        document.getElementById('editProfileOverlay').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('show');
+        });
+
+        document.getElementById('editProfilePhotoInput').addEventListener('change', function() {
+            const file = this.files && this.files[0];
+            if (!file) return;
+            compressImageToBase64(file, 400, 0.75).then(function(base64) {
+                pendingProfilePhoto = base64;
+                const preview = document.getElementById('editProfilePhotoPreview');
+                preview.src = base64;
+                preview.style.display = 'block';
+                document.getElementById('editProfilePhotoFallback').style.display = 'none';
+            }).catch(function(err) {
+                console.error('Photo compress failed:', err);
+                showToast('❌ Photo process nahi ho payi', 'error');
+            });
+        });
+
+        document.getElementById('editProfileSaveBtn').addEventListener('click', function() {
+            const newName = document.getElementById('editProfileName').value.trim();
+            if (!newName) {
+                showToast('Naam khaali nahi ho sakta!', 'error');
+                return;
+            }
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving...';
+
+            const updateData = { user_name: newName };
+            if (pendingProfilePhoto) updateData.user_photo = pendingProfilePhoto;
+
+            chatRef.update(updateData).then(function() {
+                setUserName(newName); // localStorage bhi sync rahe
+                showToast('✅ Profile update ho gayi!');
+                document.getElementById('editProfileOverlay').classList.remove('show');
+            }).catch(function(err) {
+                console.error('Profile save failed:', err);
+                showToast('❌ Profile save nahi ho payi', 'error');
+            }).finally(function() {
+                btn.disabled = false;
+                btn.textContent = '💾 Save';
+            });
+        });
+
+        // ========================================
+        // PHOTO LIGHTBOX — chat mein bheji gayi photo tap karke poori dekhein
+        // ========================================
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightboxOverlay').classList.add('show');
+        }
+        window.openLightbox = openLightbox;
+        document.getElementById('lightboxOverlay').addEventListener('click', function() {
+            this.classList.remove('show');
+        });
+
         db.ref('admin_presence').on('value', function(snap) {
             const data = snap.val() || {};
             if (data.online) {
@@ -1308,7 +1474,7 @@ html, body {
             } else if (data.last_seen) {
                 adminPresenceText = 'Last seen: ' + formatLastSeen(data.last_seen);
             } else {
-                adminPresenceText = 'Chat with husband';
+                adminPresenceText = 'Chat with Admin';
             }
             renderHeaderSub();
         });
@@ -1436,12 +1602,16 @@ html, body {
                     </div>
                 </div>`;
 
+            const bodyHtml = m.type === 'photo' && m.photo
+                ? `<img src="${m.photo}" class="chat-photo-msg" onclick="event.stopPropagation();openLightbox('${m.photo}')" alt="Photo">`
+                : `<div>${m.text}</div>`;
+
             return `
                 <div class="chat-row ${rowCls}" id="msgrow-${key}">
                     ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setReply('${key}')" title="Reply">❕</button>` : ''}
                     <div class="chat-bubble" onclick="toggleMessageDetails(event, '${key}')">
                         ${quotePreview ? `<div class="cb-quote">${quotePreview}</div>` : ''}
-                        <div>${m.text}</div>
+                        ${bodyHtml}
                         ${m.link_url ? `<div><a href="${m.link_url}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${m.link_title || 'Open Link'}</a></div>` : ''}
                         <div class="cb-time">${time}${tickHtml}</div>
                         ${details}
@@ -1539,8 +1709,9 @@ html, body {
             const messages = window.__msgCacheForReply;
             if (!messages || !messages[key]) return;
             const m = messages[key];
-            replyingTo = m.text;
-            const preview = m.text.length > 70 ? m.text.slice(0, 70) + '…' : m.text;
+            const replyText = (m.type === 'photo') ? '📷 Photo' : (m.text || '');
+            replyingTo = replyText;
+            const preview = replyText.length > 70 ? replyText.slice(0, 70) + '…' : replyText;
             document.getElementById('replyPreviewText').textContent = '↩️ ' + preview;
             document.getElementById('replyPreviewBar').classList.add('show');
             document.getElementById('chatTextInput').focus();
@@ -1637,27 +1808,30 @@ html, body {
             photoBtn.disabled = true;
 
             const caption = `📩 New Photo - SK Education\n\n👤 From: ${userName}`;
+            const telegramSave = sendTelegramPhoto(caption, file);
 
-            const msgData = { sender: 'user', text: '📷 Photo bheji gayi', timestamp: new Date().toISOString() };
-            const firebaseSave = chatRef.child('messages').push(msgData).then(function() {
-                return chatRef.update({
-                    user_name: userName,
-                    last_message: '📷 Photo',
-                    last_sender: 'user',
-                    last_timestamp: msgData.timestamp
+            const firebaseSave = compressImageToBase64(file, 1280, 0.72).then(function(base64) {
+                const msgData = { sender: 'user', type: 'photo', photo: base64, text: '', timestamp: new Date().toISOString() };
+                return chatRef.child('messages').push(msgData).then(function() {
+                    return chatRef.update({
+                        user_name: userName,
+                        last_message: '📷 Photo',
+                        last_sender: 'user',
+                        last_timestamp: msgData.timestamp
+                    });
                 });
             });
-            const telegramSave = sendTelegramPhoto(caption, file);
+
             Promise.allSettled([firebaseSave, telegramSave]).then(function(results) {
                 const firebaseOk = results[0].status === 'fulfilled';
                 const telegramOk = results[1].status === 'fulfilled';
                 if (firebaseOk && telegramOk) showToast('✅ Photo bhej di gayi!');
-                else if (firebaseOk) showToast('✅ Photo chat mein save ho gayi. Telegram notification nahi ja payi.', 'error');
-                else showToast('❌ Photo chat mein save nahi ho payi.', 'error');
+                else if (firebaseOk) showToast('✅ Photo chat mein bhej di gayi. Telegram notification nahi ja payi.', 'error');
+                else showToast('❌ Photo bhejne mein error aayi.', 'error');
                 if (!telegramOk) console.error('Photo Telegram send failed:', results[1].reason);
-                if (!firebaseOk) console.error('Photo Firebase save failed:', results[0].reason);
+                if (!firebaseOk) console.error('Photo chat save failed:', results[0].reason);
             }).finally(function() {
-                photoBtn.textContent = '📷';
+                photoBtn.textContent = '📎';
                 photoBtn.disabled = false;
                 document.getElementById('photoInput').value = '';
             });
