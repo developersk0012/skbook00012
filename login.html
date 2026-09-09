@@ -1,49 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Login - SK Education</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="config.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;background:linear-gradient(135deg,#0c0c2e 0%,#1a1a3e 50%,#2d1b69 100%);color:#fff;font-family:'Segoe UI',Arial,sans-serif;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{width:min(100%,420px);padding:45px 35px;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border-radius:24px;border:1px solid rgba(255,255,255,.08);box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center}
-.logo{font-size:58px;margin-bottom:10px}
-h1{font-size:28px;margin-bottom:6px;background:linear-gradient(90deg,#4cc9f0,#f72585);-webkit-background-clip:text;color:transparent}
-p{color:#a5b4fc;font-size:15px;margin-bottom:25px}
-label{display:block;text-align:left;color:#a5b4fc;font-size:14px;font-weight:600;margin-bottom:7px}
-input{width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#fff;font-size:16px;outline:none;margin-bottom:15px}
-input:focus{border-color:#4361ee;background:rgba(255,255,255,.08)}
-button{width:100%;padding:15px;background:linear-gradient(90deg,#4361ee,#f72585);border:0;border-radius:12px;color:#fff;font-size:18px;font-weight:700;cursor:pointer}
-.err{display:none;color:#f72585;margin-top:12px;font-size:13px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SK Education</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3e 50%, #2d1b69 100%); min-height: 100vh; color: white; }
+
+        #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .login-container { max-width: 420px; width: 100%; padding: 45px 35px; background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 60px rgba(0,0,0,0.4); animation: fadeIn 0.6s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .login-logo { font-size: 60px; text-align: center; margin-bottom: 10px; }
+        .login-title { font-size: 28px; font-weight: 700; text-align: center; background: linear-gradient(90deg, #4cc9f0, #f72585); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; }
+        .login-subtitle { color: #a5b4fc; text-align: center; font-size: 15px; margin-bottom: 25px; }
+        .login-input-group { margin-bottom: 18px; }
+        .login-input-group label { display: block; color: #a5b4fc; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+        .login-input-group input { width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-size: 16px; transition: all 0.3s ease; }
+        .login-input-group input:focus { outline: none; border-color: #4361ee; background: rgba(255,255,255,0.08); box-shadow: 0 0 0 4px rgba(67,97,238,0.15); }
+        .login-input-group input::placeholder { color: #4a5a7a; }
+        .login-btn { width: 100%; padding: 16px; background: linear-gradient(90deg, #4361ee, #f72585); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; margin-top: 5px; }
+        .login-btn:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(67,97,238,0.35); }
+        .login-btn:active { transform: scale(0.98); }
+        .login-btn:disabled { opacity: 0.7; cursor: default; transform: none; }
+        .login-error { color: #f72585; margin-top: 12px; text-align: center; font-size: 14px; display: none; }
+
+        @media (max-width: 480px) {
+            .login-container { padding: 30px 20px; margin: 0 10px; }
+            .login-title { font-size: 22px; }
+        }
+    </style>
 </head>
 <body>
-<div class="card">
-  <div class="logo">📚</div>
-  <h1>SK Education</h1>
-  <p>Apna naam enter karke chat start karein</p>
-  <form id="loginForm">
-    <label for="name">👤 Your Name</label>
-    <input id="name" type="text" maxlength="60" placeholder="Enter your name" autocomplete="name" required>
-    <button type="submit">🚀 Start Chat</button>
-    <div id="err" class="err"></div>
-  </form>
-</div>
-<script>
-if(getUserName()) location.replace("chat.html");
-document.getElementById("loginForm").addEventListener("submit", e=>{
-  e.preventDefault();
-  const name=document.getElementById("name").value.trim();
-  const err=document.getElementById("err");
-  if(name.length<1){err.textContent="Name enter karein";err.style.display="block";return;}
-  setUserName(name);
-  // Intentionally NO Telegram notification on login.
-  location.replace("chat.html");
-});
-</script>
+
+    <div id="loginScreen">
+        <div class="login-container">
+            <div class="login-logo">📚</div>
+            <h2 class="login-title">Welcome to SK Education</h2>
+            <p class="login-subtitle">Apna naam daal ke chat shuru karein</p>
+            <form id="loginForm">
+                <div class="login-input-group">
+                    <label>👤 Your Name</label>
+                    <input type="text" id="loginName" placeholder="Enter your full name" required autocomplete="name">
+                </div>
+                <button type="submit" class="login-btn" id="loginBtn">🚀 Continue</button>
+                <div id="loginError" class="login-error"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Pehle se logged in hai to seedha chat par bhej do.
+    if (getUserName()) {
+        window.location.href = 'index.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('loginName').value.trim();
+        const errorDiv = document.getElementById('loginError');
+        const btn = document.getElementById('loginBtn');
+        errorDiv.style.display = 'none';
+
+        if (!name) {
+            errorDiv.style.display = 'block';
+            errorDiv.textContent = '⚠️ Please enter your name!';
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = '⏳ Please wait...';
+
+        setUserName(name);
+
+        // Login hote hi Telegram par notification jaani chahiye — isliye
+        // redirect ko notification promise (success ya fail, dono) ke
+        // baad hi karte hain, taaki request beech mein cancel na ho.
+        sendLoginNotification(name)
+            .catch(function(err) {
+                console.error('Login notification failed:', err);
+            })
+            .finally(function() {
+                window.location.href = 'index.html';
+            });
+    });
+    </script>
 </body>
 </html>

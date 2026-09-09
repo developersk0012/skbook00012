@@ -1,111 +1,2206 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Admin Panel - SK Education</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script src="config.js"></script>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:linear-gradient(135deg,#0c0c2e 0%,#1a1a3e 50%,#2d1b69 100%);min-height:100vh;color:#fff;font-family:'Segoe UI',Arial,sans-serif}
-.login{max-width:400px;margin:80px auto;padding:45px 35px;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border-radius:24px;border:1px solid rgba(255,255,255,.08);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.login .lock{font-size:50px}.login h2{font-size:28px;margin:8px 0 5px}.login p{color:#a5b4fc;margin-bottom:25px}.login input{width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#fff;font-size:16px;margin-bottom:15px;outline:none}.login button{width:100%;padding:15px;background:linear-gradient(90deg,#4361ee,#f72585);border:0;border-radius:12px;color:#fff;font-size:18px;font-weight:700}.err{display:none;color:#f72585;margin-top:10px}
-.container{max-width:1100px;margin:auto;padding:20px 25px 40px}.header{display:flex;justify-content:space-between;align-items:center;padding:18px 25px;background:rgba(255,255,255,.04);backdrop-filter:blur(12px);border-radius:16px;border:1px solid rgba(255,255,255,.06);margin-bottom:20px}.head-left{display:flex;align-items:center;gap:15px}.logo{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#4361ee,#f72585);font-weight:800}.head-left small{display:block;color:#a5b4fc}.logout{padding:10px 20px;background:rgba(247,37,133,.15);color:#f72585;border:1px solid rgba(247,37,133,.15);border-radius:8px;font-weight:600}
-.layout{display:flex;gap:12px;height:calc(100vh - 120px);min-height:520px}.list{width:285px;flex:0 0 285px;background:rgba(12,23,40,.78);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow-y:auto}.list-head{padding:15px 17px;border-bottom:1px solid rgba(255,255,255,.08);font-weight:700}.item{padding:13px 15px;border-bottom:1px solid rgba(255,255,255,.045);cursor:pointer}.item:hover,.item.active{background:rgba(117,100,255,.12)}.item strong{font-size:14px}.item small{display:block;color:#91a4bc;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item .dot{float:right;width:8px;height:8px;border-radius:50%;background:#f72585;margin-top:5px}
-.thread{flex:1;min-width:0;background:#07111f;border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}.thread-head{height:68px;flex:0 0 68px;padding:10px 14px;background:rgba(12,23,40,.94);border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}.back{display:none}.thread-head small{display:block;color:#54e5c2;margin-top:3px}.messages{flex:1;min-height:0;overflow-y:auto;padding:14px 12px}.row{display:flex;margin:7px 0}.row.user{justify-content:flex-start}.row.admin{justify-content:flex-end}.bubble{max-width:78%;padding:9px 11px 7px;border-radius:17px 17px 17px 5px;background:#182a41;font-size:14px;line-height:1.38;white-space:pre-wrap;overflow-wrap:anywhere}.row.admin .bubble{background:linear-gradient(135deg,#6655f2,#5545dc);border-radius:17px 17px 5px 17px}.time{font-size:9px;opacity:.6;text-align:right;margin-top:4px}.typing{height:0;opacity:0;color:#54e5c2;font-size:11px;padding-left:14px;overflow:hidden;transition:.15s}.typing.show{height:24px;opacity:1;padding-top:5px}.composer{display:flex;gap:8px;padding:8px 9px 10px;border-top:1px solid rgba(255,255,255,.08);background:#0a1727}.composer input{flex:1;height:46px;border-radius:15px;border:1px solid rgba(255,255,255,.08);background:#101e32;color:#fff;padding:0 14px;outline:none}.composer button{width:46px;height:46px;border:0;border-radius:15px;background:linear-gradient(135deg,#7564ff,#5143db);color:#fff;font-size:20px}
-.empty{display:grid;place-items:center;height:100%;color:#71829a;text-align:center}
-@media(max-width:768px){.container{padding:10px}.layout{height:calc(100dvh - 100px);min-height:0}.list{width:100%;flex:1}.thread{display:none}.layout.open .list{display:none}.layout.open .thread{display:flex;position:fixed;inset:0;width:100vw;height:100dvh;border:0;border-radius:0;z-index:20}.back{display:block;width:34px;height:34px;border:0;background:rgba(255,255,255,.05);border-radius:10px;color:#fff;font-size:22px}.header{padding:14px 15px}.logout{padding:8px 12px}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - SK Education</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3e 50%, #2d1b69 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* ===== ADMIN LOGIN ===== */
+        .admin-login {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 45px 35px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .admin-login .lock-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .admin-login h2 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .admin-login p {
+            color: #a5b4fc;
+            font-size: 15px;
+            margin-bottom: 25px;
+        }
+
+        .admin-login input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-login input:focus {
+            outline: none;
+            border-color: #4361ee;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-login button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, #4361ee, #f72585);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-login button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px rgba(67, 97, 238, 0.35);
+        }
+
+        .admin-login .error {
+            color: #f72585;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* ===== ADMIN PANEL ===== */
+        .admin-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px 25px 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .admin-header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-header-left .logo-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4361ee, #f72585);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .admin-header-left h2 {
+            font-size: 22px;
+            color: white;
+            margin: 0;
+        }
+
+        .admin-header-left small {
+            color: #a5b4fc;
+            font-size: 13px;
+            display: block;
+        }
+
+        .admin-header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .logout-btn {
+            padding: 10px 22px;
+            background: rgba(247, 37, 133, 0.15);
+            color: #f72585;
+            border: 1px solid rgba(247, 37, 133, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(247, 37, 133, 0.3);
+        }
+
+        /* ===== STATS ===== */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .admin-stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .admin-stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .admin-stat-label {
+            color: #a5b4fc;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* ===== TABS ===== */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .admin-tab {
+            padding: 10px 22px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: #a5b4fc;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            background: linear-gradient(90deg, #4361ee, #f72585);
+            color: white;
+            box-shadow: 0 4px 20px rgba(67, 97, 238, 0.3);
+        }
+
+        .admin-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* ===== CARDS ===== */
+        .admin-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            padding: 25px 30px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 20px;
+        }
+
+        .admin-card h3 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding-bottom: 12px;
+        }
+
+        .admin-card .form-group {
+            margin-bottom: 16px;
+        }
+
+        .admin-card label {
+            display: block;
+            color: #a5b4fc;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .admin-card input,
+        .admin-card select,
+        .admin-card textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .admin-card input:focus,
+        .admin-card select:focus,
+        .admin-card textarea:focus {
+            outline: none;
+            border-color: #4361ee;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-card input::placeholder,
+        .admin-card textarea::placeholder {
+            color: #4a5a7a;
+        }
+
+        .admin-card select option {
+            background: #1a1a3e;
+        }
+
+        .btn-primary {
+            padding: 12px 30px;
+            background: linear-gradient(90deg, #4361ee, #f72585);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-danger-small {
+            background: rgba(247, 37, 133, 0.15);
+            color: #f72585;
+            border: 1px solid rgba(247, 37, 133, 0.15);
+            padding: 4px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .btn-danger-small:hover {
+            background: rgba(247, 37, 133, 0.3);
+        }
+
+        .btn-edit-small {
+            background: rgba(76, 201, 240, 0.15);
+            color: #4cc9f0;
+            border: 1px solid rgba(76, 201, 240, 0.15);
+            padding: 4px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .btn-edit-small:hover {
+            background: rgba(76, 201, 240, 0.3);
+        }
+
+        .btn-warning {
+            padding: 10px 25px;
+            background: #ffc107;
+            color: #1a1a3e;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-warning:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-success {
+            padding: 10px 25px;
+            background: #4cc9f0;
+            color: #1a1a3e;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-success:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            padding: 12px 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #a5b4fc;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        /* ===== LISTS ===== */
+        .admin-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: white;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-list-item strong {
+            display: block;
+            font-size: 15px;
+            white-space: pre-line;
+        }
+
+        .admin-list-item small {
+            color: #6a7a9e;
+            font-size: 13px;
+        }
+
+        .admin-list-item .time {
+            color: #6a7a9e;
+            font-size: 12px;
+        }
+
+        .admin-list-item .item-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* ===== CHAT (Messages tab) ===== */
+        .chat-layout { display: flex; gap: 15px; height: 560px; }
+        .chat-list-panel { width: 300px; flex-shrink: 0; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); overflow-y: auto; display: flex; flex-direction: column; }
+        .chat-list-header { padding: 16px 18px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+        .chat-list-item { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.2s; position: relative; }
+        .chat-list-item:hover, .chat-list-item.active { background: rgba(67,97,238,0.12); }
+        .chat-list-item.unread { background: rgba(76,201,240,0.06); }
+        .chat-list-item .clu-name { font-weight: 600; font-size: 14px; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+        .chat-list-item.unread .clu-name { font-weight: 800; color: #4cc9f0; }
+        .clu-online-dot { width: 8px; height: 8px; border-radius: 50%; background: #3ddc84; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(61,220,132,0.25); }
+        .clu-unread-badge { width: 8px; height: 8px; border-radius: 50%; background: #f72585; flex-shrink: 0; margin-left: auto; }
+        .chat-list-item .clu-preview { color: #a5b4fc; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; display: inline-block; vertical-align: middle; }
+        .chat-list-item .clu-time { color: #6a7a9e; font-size: 11px; float: right; }
+
+        .chat-thread-panel { flex: 1; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-thread-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #6a7a9e; gap: 10px; }
+        .chat-thread-active { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+        .chat-thread-header { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .chat-back-btn { display: none; background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+        .chat-messages { flex: 1; min-height: 0; overflow-y: auto; scroll-behavior: smooth; padding: 10px 12px; }
+        .chat-row { display: block; margin: 3px 0; line-height: 0; opacity: 0; animation: bubbleIn 0.18s ease forwards; }
+        @keyframes bubbleIn { from { opacity: 0; } to { opacity: 1; } }
+        .chat-row.from-admin { text-align: right; }
+        .chat-row.from-user { text-align: left; }
+        .chat-bubble { display: inline-block; max-width: 65%; padding: 5px 8px; border-radius: 7px; font-size: 13px; line-height: 1.32; white-space: pre-line; word-break: break-word; box-shadow: 0 1px 3px rgba(0,0,0,0.2); text-align: left; vertical-align: bottom; }
+        .chat-row.from-user .chat-bubble { background: rgba(255,255,255,0.08); border-bottom-left-radius: 2px; }
+        .chat-row.from-admin .chat-bubble { background: linear-gradient(90deg, #4361ee, #f72585); border-bottom-right-radius: 2px; }
+        .chat-bubble .cb-quote { border-left: 3px solid rgba(255,255,255,0.5); padding: 3px 7px; margin-bottom: 4px; font-size: 11.5px; opacity: 0.8; border-radius: 4px; background: rgba(0,0,0,0.12); line-height: 1.25; }
+        .chat-bubble .cb-time { font-size: 9.5px; opacity: 0.65; margin-top: 2px; text-align: right; }
+        .chat-bubble .cb-link { display: inline-block; margin-top: 4px; color: #dff; text-decoration: underline; font-size: 12px; }
+        .chat-row.from-user .cb-link { color: #4cc9f0; }
+        .reply-icon-btn { display: inline-flex; vertical-align: bottom; margin: 0 3px; background: rgba(255,255,255,0.06); border: none; color: #a5b4fc; font-size: 10px; width: 18px; height: 18px; border-radius: 50%; cursor: pointer; align-items: center; justify-content: center; transition: all 0.2s ease; opacity: 0.7; line-height: normal; }
+        .reply-icon-btn:hover { background: rgba(255,255,255,0.15); color: white; opacity: 1; transform: scale(1.1); }
+
+        .reply-preview-bar { display: none; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 14px; background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+        .reply-preview-bar.show { display: flex; }
+        .reply-preview-text { border-left: 3px solid #4361ee; padding-left: 8px; font-size: 12px; color: #a5b4fc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .reply-preview-cancel { background: none; border: none; color: #f72585; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+
+        .chat-input-bar { padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
+        .chat-link-input { width: 100%; margin-bottom: 6px; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: white; font-size: 12.5px; }
+        .chat-input-bar input#chatReplyInput { flex: 1; padding: 10px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; font-size: 14px; }
+        .chat-send-btn { background: linear-gradient(90deg, #4361ee, #f72585); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; font-size: 16px; cursor: pointer; flex-shrink: 0; }
+
+        @media (max-width: 768px) {
+            .chat-layout { height: 68vh; }
+            .chat-list-panel { width: 100%; }
+            .chat-thread-panel { display: none; }
+            .chat-back-btn { display: inline-block; }
+            .chat-layout.thread-open .chat-list-panel { display: none; }
+            .chat-layout.thread-open .chat-thread-panel { display: flex; width: 100%; }
+        }
+
+        /* ===== SETTINGS ===== */
+        .setting-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item h4 {
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .setting-item p {
+            color: #a5b4fc;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-msg {
+            color: #4cc9f0;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .empty-msg {
+            color: #6a7a9e;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 15px;
+            }
+            .admin-tabs {
+                flex-direction: column;
+                background: transparent;
+                border: none;
+                padding: 0;
+            }
+            .admin-tab {
+                text-align: center;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+            }
+            .admin-card {
+                padding: 18px;
+            }
+            .admin-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .admin-header-left {
+                justify-content: center;
+            }
+            .admin-header-right {
+                justify-content: center;
+            }
+            .admin-login {
+                margin: 40px 15px;
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-stat-value {
+                font-size: 24px;
+            }
+            .admin-tab {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+        }
+    
+/* =========================================================
+   SK EDUCATION — CHAT UI REFRESH
+   Visual-only overrides. JavaScript/Firebase markup preserved.
+   ========================================================= */
+:root{
+  --chat-bg:#07111f;
+  --chat-panel:#0c1728;
+  --chat-panel-2:#101d31;
+  --chat-line:rgba(255,255,255,.08);
+  --chat-text:#eef5ff;
+  --chat-muted:#8fa0b7;
+  --chat-bubble:#17283e;
+  --chat-mine:#5d4be9;
+  --chat-accent:#7564ff;
+  --chat-online:#54e5c2;
+}
+
+.chat-layout{
+  display:flex;
+  gap:12px;
+  height:620px;
+  min-height:0;
+  overflow:hidden;
+}
+
+.chat-list-panel{
+  width:285px;
+  flex:0 0 285px;
+  background:rgba(12,23,40,.78);
+  border:1px solid var(--chat-line);
+  border-radius:18px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  box-shadow:0 10px 35px rgba(0,0,0,.18);
+  scrollbar-width:thin;
+}
+
+.chat-list-header{
+  position:sticky;
+  top:0;
+  z-index:2;
+  padding:15px 17px;
+  background:rgba(12,23,40,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--chat-line);
+  font-size:14px;
+}
+
+.chat-list-item{
+  padding:13px 15px;
+  border-bottom:1px solid rgba(255,255,255,.045);
+  transition:background .16s ease,transform .16s ease;
+}
+.chat-list-item:hover{
+  background:rgba(117,100,255,.08);
+}
+.chat-list-item.active{
+  background:rgba(117,100,255,.14);
+  box-shadow:inset 3px 0 0 var(--chat-accent);
+}
+.chat-list-item.unread{
+  background:rgba(84,229,194,.055);
+}
+.chat-list-item .clu-name{
+  font-size:13.5px;
+}
+.chat-list-item .clu-preview{
+  color:#91a4bc;
+  font-size:11.5px;
+  max-width:175px;
+}
+.chat-list-item .clu-time{
+  font-size:10px;
+  color:#687b94;
+}
+
+/* Conversation panel */
+.chat-thread-panel{
+  flex:1;
+  min-width:0;
+  background:var(--chat-bg);
+  border:1px solid var(--chat-line);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 15px 45px rgba(0,0,0,.22);
+}
+
+.chat-thread-active{
+  background:
+    radial-gradient(circle at 25% 15%,rgba(117,100,255,.055),transparent 28%),
+    linear-gradient(180deg,#07111f 0%,#06101d 100%);
+}
+
+.chat-thread-header{
+  min-height:70px;
+  padding:11px 15px;
+  background:rgba(12,23,40,.94);
+  border-bottom:1px solid var(--chat-line);
+  backdrop-filter:blur(16px);
+}
+.chat-thread-header strong{
+  font-size:15px;
+  color:#eef4ff;
+}
+#chatThreadUserName{
+  margin-top:3px;
+  color:#aab9cd!important;
+}
+#chatThreadPresence{
+  margin-top:2px;
+  color:var(--chat-online);
+}
+
+.chat-back-btn{
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  background:rgba(255,255,255,.035);
+  border:1px solid var(--chat-line);
+  color:#dce5f3;
+}
+
+/* Messages — natural width, smooth rendering */
+.chat-messages{
+  padding:18px 18px 16px;
+  scroll-behavior:smooth;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  background:
+    radial-gradient(circle at 25% 25%,rgba(117,100,255,.045),transparent 27%),
+    #07111f;
+}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.10);
+  border-radius:20px;
+}
+
+.chat-row{
+  display:flex;
+  align-items:flex-end;
+  width:100%;
+  margin:8px 0;
+  gap:3px;
+  line-height:normal;
+  opacity:1;
+  animation:chatMessageIn .16s ease-out both;
+}
+.chat-row.from-user{justify-content:flex-start}
+.chat-row.from-admin{justify-content:flex-end}
+
+@keyframes chatMessageIn{
+  from{opacity:.55;transform:translateY(4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+.chat-bubble{
+  display:block;
+  width:fit-content;
+  max-width:min(78%,500px);
+  min-width:0;
+  padding:10px 13px 7px;
+  border-radius:18px 18px 18px 6px;
+  background:var(--chat-bubble);
+  border:1px solid rgba(255,255,255,.055);
+  color:#edf3fc;
+  font-size:14px;
+  line-height:1.42;
+  white-space:pre-line;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  box-shadow:0 6px 20px rgba(0,0,0,.13);
+  text-align:left;
+  vertical-align:bottom;
+}
+
+.chat-row.from-admin .chat-bubble{
+  background:linear-gradient(135deg,#6655f2,#5545dc);
+  border-color:rgba(255,255,255,.08);
+  border-radius:18px 18px 6px 18px;
+}
+
+.chat-row.from-user .chat-bubble{
+  background:#17283e;
+  border-bottom-left-radius:6px;
+}
+
+.chat-bubble .cb-quote{
+  margin:-1px 0 7px;
+  padding:7px 9px;
+  border-left:3px solid #887bff;
+  border-radius:8px;
+  background:rgba(0,0,0,.16);
+  color:#bdc8da;
+  font-size:11px;
+  line-height:1.35;
+  opacity:1;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.chat-bubble .cb-time{
+  margin-top:5px;
+  color:rgba(255,255,255,.55);
+  font-size:9.5px;
+  line-height:1;
+  text-align:right;
+}
+.chat-row.from-admin .cb-time{color:rgba(255,255,255,.74)}
+
+.chat-bubble .cb-link{
+  margin-top:6px;
+  color:#bcecff;
+  font-size:12px;
+  text-decoration:none;
+  word-break:break-all;
+}
+.chat-row.from-user .cb-link{color:#8fe5ff}
+
+/* Reply icon stays functional but looks unobtrusive */
+.reply-icon-btn{
+  width:20px;
+  height:20px;
+  margin:0 2px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.045);
+  color:#aebbd0;
+  font-size:10px;
+  opacity:.55;
+  transition:.15s ease;
+}
+.reply-icon-btn:hover{
+  opacity:1;
+  transform:scale(1.05);
+}
+
+/* Reply composer */
+.reply-preview-bar{
+  padding:8px 12px;
+  background:#0e1b2e;
+  border-top:1px solid var(--chat-line);
+}
+.reply-preview-text{
+  border-left-color:var(--chat-accent);
+  color:#bac7da;
+  font-size:11px;
+  padding-left:9px;
+}
+.reply-preview-cancel{
+  color:#b8c4d5;
+}
+
+.chat-input-bar{
+  padding:9px 11px 11px;
+  background:rgba(10,23,39,.98);
+  border-top:1px solid var(--chat-line);
+  box-shadow:0 -8px 28px rgba(0,0,0,.12);
+}
+
+.chat-link-input{
+  height:36px;
+  padding:0 12px;
+  margin-bottom:6px;
+  border-radius:12px;
+  border:1px solid var(--chat-line);
+  background:#101e32;
+  color:#f4f7fb;
+  outline:none;
+  font-size:11px;
+}
+.chat-link-input:focus{
+  border-color:rgba(117,100,255,.5);
+  box-shadow:0 0 0 3px rgba(117,100,255,.07);
+}
+
+.chat-input-bar input#chatReplyInput{
+  height:44px;
+  padding:0 14px;
+  border-radius:16px;
+  border:1px solid var(--chat-line);
+  background:#101e32;
+  color:#f4f7fb;
+  outline:none;
+  font-size:13px;
+}
+.chat-input-bar input#chatReplyInput::placeholder{color:#71829a}
+.chat-input-bar input#chatReplyInput:focus{
+  border-color:rgba(117,100,255,.5);
+  box-shadow:0 0 0 3px rgba(117,100,255,.07);
+}
+
+.chat-send-btn{
+  width:44px;
+  height:44px;
+  border-radius:15px;
+  background:linear-gradient(135deg,#7564ff,#5143db);
+  box-shadow:0 8px 20px rgba(117,100,255,.23);
+  font-size:19px;
+  transition:transform .12s ease,box-shadow .12s ease;
+}
+.chat-send-btn:active{transform:scale(.95)}
+
+/* Empty state */
+.chat-thread-empty{
+  background:
+    radial-gradient(circle at 50% 35%,rgba(117,100,255,.07),transparent 30%),
+    #07111f;
+  color:#8192aa;
+}
+.chat-thread-empty div{filter:saturate(.8)}
+
+@media(max-width:768px){
+  body{min-height:100dvh}
+  .admin-container{
+    padding:10px;
+  }
+  .chat-layout{
+    height:calc(100dvh - 145px);
+    min-height:500px;
+    display:flex;
+    gap:0;
+    border-radius:18px;
+  }
+  .chat-list-panel{
+    width:100%;
+    flex:1 1 100%;
+    border-radius:18px;
+  }
+  .chat-thread-panel{
+    display:none;
+    width:100%;
+    height:100%;
+    border-radius:18px;
+    border-left:1px solid var(--chat-line);
+  }
+  .chat-layout.thread-open .chat-list-panel{display:none}
+  .chat-layout.thread-open .chat-thread-panel{display:flex}
+  .chat-thread-header{
+    min-height:68px;
+    padding:10px 12px;
+  }
+  .chat-messages{
+    padding:16px 12px 14px;
+  }
+  .chat-bubble{
+    max-width:82%;
+    font-size:14px;
+  }
+  .chat-input-bar{
+    padding:8px 9px 10px;
+  }
+}
+
+@media(max-width:480px){
+  .chat-layout{
+    height:calc(100dvh - 120px);
+    min-height:460px;
+  }
+  .chat-bubble{
+    max-width:84%;
+    padding:10px 12px 7px;
+  }
+  .chat-row{margin:7px 0}
+  .chat-send-btn{
+    width:46px;
+    height:46px;
+    flex-basis:46px;
+  }
+  .chat-input-bar input#chatReplyInput{
+    height:46px;
+    font-size:14px;
+  }
+}
+
+    
+/* ===== FINAL CHAT POLISH ===== */
+.chat-layout{width:100%;height:calc(100vh - 170px);min-height:520px;display:flex;gap:12px}
+.chat-messages{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px 14px 20px;background:#07111f;scroll-behavior:smooth;overscroll-behavior:contain}
+.chat-row{display:flex!important;align-items:flex-end;width:100%;margin:7px 0!important;line-height:normal!important;opacity:1!important;animation:finalMessageIn .15s ease-out}
+@keyframes finalMessageIn{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.chat-row.from-user{justify-content:flex-start!important;text-align:left!important}
+.chat-row.from-admin{justify-content:flex-end!important;text-align:right!important}
+.chat-bubble{display:inline-block!important;width:max-content!important;min-width:0!important;max-width:min(72%,420px)!important;padding:8px 11px 6px!important;border-radius:15px 15px 15px 4px!important;background:#182a41!important;color:#eef4ff!important;font-size:14px!important;line-height:1.38!important;white-space:pre-line!important;overflow-wrap:anywhere!important;word-break:break-word!important;box-shadow:0 4px 14px rgba(0,0,0,.14)!important}
+.chat-row.from-admin .chat-bubble{background:linear-gradient(135deg,#6655f2,#5645df)!important;border-radius:15px 15px 4px 15px!important}
+.chat-bubble .cb-time{margin-top:4px!important;font-size:9px!important;line-height:1!important;opacity:.65;text-align:right!important;white-space:nowrap!important}
+.chat-bubble .cb-quote{width:auto!important;max-width:100%!important;margin:-1px 0 6px!important;padding:5px 7px!important;border-left:3px solid #8c7cff!important;border-radius:6px!important;background:rgba(0,0,0,.15)!important;font-size:10px!important;line-height:1.25!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+.admin-tabs .admin-tab[onclick*="settings"]{display:inline-flex!important}
+.admin-settings-gear{width:42px;height:42px;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:rgba(255,255,255,.05);color:white;font-size:20px;cursor:pointer;display:grid;place-items:center;transition:transform .15s ease}
+.admin-settings-gear:active{transform:scale(.93)}
+@media(max-width:768px){
+ .admin-container{padding:8px!important}
+ .chat-layout{width:100%;height:calc(100dvh - 100px);min-height:0!important;gap:0}
+ .chat-layout.thread-open .chat-list-panel{display:none!important}
+ .chat-layout.thread-open .chat-thread-panel{display:flex!important;position:fixed!important;inset:0!important;z-index:9999;width:100vw!important;height:100dvh!important;border:0!important;border-radius:0!important}
+ .chat-thread-active{width:100%;height:100dvh;min-height:0;display:flex;flex-direction:column}
+ .chat-thread-header{flex:0 0 64px;min-height:64px!important;height:64px!important;padding:8px 11px!important}
+ .chat-messages{flex:1!important;min-height:0!important;padding:14px 12px 12px!important}
+ .chat-bubble{max-width:78%!important;font-size:14px!important}
+ .chat-input-bar{flex:0 0 auto;padding:8px 9px 10px!important}
+}
+@media(max-width:420px){.chat-bubble{max-width:80%!important;padding:8px 10px 6px!important;font-size:14px!important}}
+
+
+/* ===== WhatsApp-style tap-to-show message details ===== */
+.chat-bubble{cursor:pointer!important;position:relative}
+.chat-bubble .cb-time{display:none!important}
+.admin-message-details{
+  display:none;
+  margin-top:6px;
+  padding-top:5px;
+  border-top:1px solid rgba(255,255,255,.10);
+  font-size:9px;
+  line-height:1.5;
+  color:rgba(255,255,255,.68);
+  text-align:right;
+}
+.chat-bubble.details-open .admin-message-details{display:block}
+.admin-message-details .seen{color:#8feaff}
+.admin-message-details .not-seen{color:#aebbd0}
+
+
+/* =========================================================
+   ADMIN CHAT — MATCH ANNOUNCEMENTS MOBILE UI
+   Visual/layout only. Existing Firebase + JS functionality kept.
+   ========================================================= */
+@media (max-width: 768px) {
+  /* Pehle ye poore mobile par html/body scroll hamesha ke liye band kar
+     deta tha — isliye admin ka poora HOME PAGE bhi scroll nahi ho pa raha
+     tha. Ab sirf tab lock hota hai jab koi chat thread khula ho
+     (.chat-fullscreen-lock class JS se lagti/hatati hai). */
+  html.chat-fullscreen-lock, body.chat-fullscreen-lock { width:100% !important; height:100% !important; overflow:hidden !important; }
+  #app { width:100% !important; min-height:100dvh !important; }
+
+  /* When a conversation is opened, use the whole phone like announcements */
+  .chat-layout.thread-open .chat-thread-panel {
+    position:fixed !important;
+    inset:0 !important;
+    z-index:99999 !important;
+    width:100vw !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    margin:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    overflow:hidden !important;
+    background:#07111f !important;
+  }
+
+  .chat-layout.thread-open .chat-thread-active {
+    display:flex !important;
+    flex-direction:column !important;
+    width:100% !important;
+    height:100dvh !important;
+    min-height:100dvh !important;
+    max-height:100dvh !important;
+    overflow:hidden !important;
+    background:
+      radial-gradient(circle at 25% 15%,rgba(117,100,255,.055),transparent 28%),
+      linear-gradient(180deg,#07111f 0%,#06101d 100%) !important;
+  }
+
+  /* Header = announcements style */
+  .chat-layout.thread-open .chat-thread-header {
+    flex:0 0 74px !important;
+    width:100% !important;
+    height:74px !important;
+    min-height:74px !important;
+    max-height:74px !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:10px !important;
+    padding:7px 11px !important;
+    background:rgba(12,23,40,.97) !important;
+    border-bottom:1px solid rgba(255,255,255,.08) !important;
+    box-shadow:0 4px 20px rgba(0,0,0,.12) !important;
+    z-index:50 !important;
+  }
+
+  .chat-layout.thread-open .chat-back-btn {
+    width:38px !important;
+    height:38px !important;
+    min-width:38px !important;
+    border-radius:12px !important;
+    display:grid !important;
+    place-items:center !important;
+    background:rgba(255,255,255,.035) !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    color:#dce5f3 !important;
+    font-size:27px !important;
+    line-height:1 !important;
+  }
+
+  .chat-layout.thread-open .chat-thread-header strong {
+    display:block !important;
+    color:#eef4ff !important;
+    font-size:18px !important;
+    line-height:1.15 !important;
+    font-weight:800 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .chat-layout.thread-open .chat-thread-header small#chatThreadUserName {
+    margin-top:4px !important;
+    color:#aebbd0 !important;
+    font-size:11px !important;
+  }
+  .chat-layout.thread-open .chat-thread-header small#chatThreadPresence {
+    margin-top:2px !important;
+    font-size:10px !important;
+  }
+
+  /* Messages = only scrolling area */
+  .chat-layout.thread-open .chat-messages {
+    flex:1 1 auto !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+    padding:12px 10px 10px !important;
+    background:transparent !important;
+  }
+
+  .chat-layout.thread-open .chat-row {
+    display:flex !important;
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:6px 0 !important;
+    align-items:flex-end !important;
+  }
+  .chat-layout.thread-open .chat-row.from-user { justify-content:flex-start !important; }
+  .chat-layout.thread-open .chat-row.from-admin { justify-content:flex-end !important; }
+
+  .chat-layout.thread-open .chat-bubble {
+    display:inline-block !important;
+    width:fit-content !important;
+    max-width:82% !important;
+    min-width:0 !important;
+    height:auto !important;
+    min-height:0 !important;
+    flex:0 0 auto !important;
+    padding:8px 10px 6px !important;
+    border-radius:18px 18px 18px 6px !important;
+    font-size:14px !important;
+    line-height:1.35 !important;
+    box-shadow:0 5px 18px rgba(0,0,0,.12) !important;
+    cursor:pointer !important;
+  }
+  .chat-layout.thread-open .chat-row.from-admin .chat-bubble {
+    border-radius:18px 18px 6px 18px !important;
+    background:linear-gradient(135deg,#6655f2,#5545dc) !important;
+  }
+  .chat-layout.thread-open .chat-row.from-user .chat-bubble {
+    background:#182a41 !important;
+  }
+
+  /* Tap details */
+  .chat-layout.thread-open .chat-bubble .cb-time { display:none !important; }
+  .chat-layout.thread-open .admin-message-details {
+    display:none !important;
+    width:100% !important;
+    margin-top:6px !important;
+    padding-top:6px !important;
+    border-top:1px solid rgba(255,255,255,.10) !important;
+    font-size:9px !important;
+    line-height:1.5 !important;
+    text-align:right !important;
+    color:rgba(255,255,255,.70) !important;
+  }
+  .chat-layout.thread-open .chat-bubble.details-open .admin-message-details {
+    display:block !important;
+  }
+  .chat-layout.thread-open .admin-message-details .seen { color:#8feaff !important; }
+  .chat-layout.thread-open .admin-message-details .not-seen { color:#aebbd0 !important; }
+
+  /* Reply icon same compact style */
+  .chat-layout.thread-open .reply-icon-btn {
+    display:grid !important;
+    place-items:center !important;
+    flex:0 0 28px !important;
+    width:28px !important;
+    height:28px !important;
+    min-width:28px !important;
+    min-height:28px !important;
+    margin:0 3px !important;
+    padding:0 !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    border:1px solid rgba(255,255,255,.09) !important;
+    border-radius:9px !important;
+    background:rgba(255,255,255,.06) !important;
+    color:#cbd6e5 !important;
+    font-size:12px !important;
+  }
+
+  /* Reply preview */
+  .chat-layout.thread-open .reply-preview-bar {
+    flex:0 0 auto !important;
+    width:100% !important;
+    padding:8px 12px !important;
+    background:#0e1b2e !important;
+    border-top:1px solid rgba(255,255,255,.08) !important;
+    z-index:55 !important;
+  }
+
+  /* Admin composer: keep the two link fields, but make them look like the same UI */
+  .chat-layout.thread-open .chat-input-bar {
+    flex:0 0 auto !important;
+    width:100% !important;
+    min-height:0 !important;
+    padding:7px 9px calc(8px + env(safe-area-inset-bottom)) !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:6px !important;
+    background:#0a1727 !important;
+    border-top:1px solid rgba(255,255,255,.08) !important;
+    box-shadow:0 -8px 28px rgba(0,0,0,.12) !important;
+    z-index:60 !important;
+  }
+  .chat-layout.thread-open .chat-link-input {
+    width:100% !important;
+    height:40px !important;
+    min-height:40px !important;
+    margin:0 !important;
+    padding:0 12px !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    border-radius:15px !important;
+    background:#101e32 !important;
+    color:#f4f7fb !important;
+    font-size:13px !important;
+    outline:none !important;
+  }
+  .chat-layout.thread-open .chat-link-input::placeholder { color:#71829a !important; }
+
+  .chat-layout.thread-open .chat-input-bar > div:last-child {
+    width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:7px !important;
+  }
+  .chat-layout.thread-open #chatReplyInput {
+    flex:1 !important;
+    min-width:0 !important;
+    width:auto !important;
+    height:46px !important;
+    padding:0 14px !important;
+    border-radius:16px !important;
+    border:1px solid rgba(255,255,255,.08) !important;
+    background:#101e32 !important;
+    color:#f4f7fb !important;
+    font-size:14px !important;
+  }
+  .chat-layout.thread-open #chatReplyInput::placeholder { color:#71829a !important; }
+  .chat-layout.thread-open .chat-send-btn {
+    width:46px !important;
+    height:46px !important;
+    min-width:46px !important;
+    flex:0 0 46px !important;
+    border:0 !important;
+    border-radius:15px !important;
+    background:linear-gradient(135deg,#7564ff,#5143db) !important;
+    color:white !important;
+    font-size:22px !important;
+  }
+}
+
+@media (max-width:380px) {
+  .chat-layout.thread-open .chat-thread-header { height:70px !important; min-height:70px !important; flex-basis:70px !important; }
+  .chat-layout.thread-open .chat-bubble { max-width:84% !important; font-size:13.5px !important; }
+  .chat-layout.thread-open .chat-link-input { height:38px !important; min-height:38px !important; }
+}
+
+
+/* =========================================================
+   FINAL ADMIN CHAT/UI FIX
+   - Message bubbles compact like announcements.html
+   - Settings always accessible
+   - Password + maintenance controls preserved
+   ========================================================= */
+.chat-bubble{
+    display:inline-block!important;
+    width:fit-content!important;
+    min-width:0!important;
+    max-width:min(68%,420px)!important;
+    height:auto!important;
+    padding:8px 10px 6px!important;
+    line-height:1.35!important;
+    white-space:pre-line!important;
+    overflow-wrap:anywhere!important;
+    word-break:break-word!important;
+}
+.chat-row{height:auto!important;min-height:0!important;margin:6px 0!important;line-height:normal!important;}
+.chat-row.from-admin .chat-bubble{border-radius:18px 18px 6px 18px!important;}
+.chat-row.from-user .chat-bubble{border-radius:18px 18px 18px 6px!important;}
+
+/* Settings tab must not disappear */
+.admin-tabs .admin-tab[onclick*="settings"]{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+}
+
+.admin-settings-gear{
+    width:40px!important;height:40px!important;
+    min-width:40px!important;
+    border:1px solid rgba(255,255,255,.09)!important;
+    border-radius:13px!important;
+    background:rgba(255,255,255,.05)!important;
+    color:white!important;
+    font-size:19px!important;
+    cursor:pointer!important;
+    display:grid!important;place-items:center!important;
+}
+
+/* Settings cards use the same dark premium UI */
+#tab-settings .admin-card{
+    background:rgba(12,23,40,.78)!important;
+    border:1px solid rgba(255,255,255,.08)!important;
+    border-radius:18px!important;
+    box-shadow:0 10px 35px rgba(0,0,0,.18)!important;
+}
+#tab-settings .admin-card h3{color:#eef5ff!important;}
+#tab-settings .setting-item{border-bottom:1px solid rgba(255,255,255,.07)!important;}
+#tab-settings input[type="password"]{
+    width:100%!important;
+    min-height:44px!important;
+    padding:0 13px!important;
+    border-radius:13px!important;
+    border:1px solid rgba(255,255,255,.10)!important;
+    background:#101e32!important;
+    color:#f4f7fb!important;
+    outline:none!important;
+}
+
+@media(max-width:768px){
+    .chat-layout.thread-open .chat-bubble{
+        max-width:72%!important;
+    }
+    .admin-tabs{
+        flex-direction:row!important;
+        flex-wrap:wrap!important;
+        gap:8px!important;
+        background:rgba(12,23,40,.55)!important;
+        border:1px solid rgba(255,255,255,.08)!important;
+        padding:8px!important;
+        border-radius:16px!important;
+    }
+    .admin-tab{
+        flex:1 1 0!important;
+        min-width:120px!important;
+    }
+}
+@media(max-width:420px){
+    .chat-layout.thread-open .chat-bubble{
+        max-width:70%!important;
+        font-size:14px!important;
+    }
+}
+
 </style>
+
+<style>
+/* FINAL COMPACT BUBBLE FIX — exactly like announcements */
+@media (max-width: 768px) {
+  .chat-layout.thread-open .chat-row {
+    align-items: flex-end !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+  }
+  .chat-layout.thread-open .chat-bubble {
+    display: inline-block !important;
+    width: max-content !important;
+    max-width: 62% !important;
+    min-width: 0 !important;
+    height: fit-content !important;
+    max-height: fit-content !important;
+    min-height: 0 !important;
+    flex: 0 0 auto !important;
+    align-self: flex-end !important;
+    padding: 8px 10px 6px !important;
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    white-space: pre-line !important;
+    overflow: visible !important;
+  }
+  .chat-layout.thread-open .chat-row.from-user .chat-bubble {
+    align-self: flex-start !important;
+  }
+}
+@media (max-width: 420px) {
+  .chat-layout.thread-open .chat-bubble {
+    max-width: 65% !important;
+    font-size: 14px !important;
+  }
+}
+</style>
+
 </head>
 <body>
-<div id="loginView" class="login">
- <div class="lock">🔐</div><h2>Admin Login</h2><p>Enter admin password to continue</p>
- <form id="adminForm"><input id="pass" type="password" placeholder="Enter password" required><button>Login</button><div id="err" class="err">Invalid password!</div></form>
-</div>
-<div id="app" style="display:none">
-<div class="container">
- <div class="header"><div class="head-left"><div class="logo">SK</div><div><h2>Admin Panel</h2><small>Realtime Chat</small></div></div><button class="logout" onclick="adminLogout()">Logout</button></div>
- <div id="layout" class="layout">
-  <div class="list"><div class="list-head">💬 Chats</div><div id="chatList"></div></div>
-  <div class="thread">
-   <div class="thread-head"><button class="back" onclick="closeThread()">‹</button><div><strong id="threadName">Select a chat</strong><small id="threadSub">Waiting...</small></div></div>
-   <div id="adminTyping" class="typing"></div>
-   <div id="threadMessages" class="messages"><div class="empty">💬 Select a user to start chatting</div></div>
-   <form id="replyForm" class="composer"><input id="reply" maxlength="2000" autocomplete="off" placeholder="Reply likhein..." disabled><button id="send" disabled>➤</button></form>
-  </div>
- </div>
-</div>
-</div>
-<script>
-let activeUid=null, chatListener=null, typingListener=null, typingTimer=null;
-if(sessionStorage.getItem("simple_admin_login")==="1") showAdmin();
+    <div id="app">
+        <!-- ======================================== -->
+        <!-- ADMIN LOGIN -->
+        <!-- ======================================== -->
+        <div id="loginScreen" style="display:none;">
+            <div class="admin-login">
+                <div class="lock-icon">🔐</div>
+                <h2>Admin Login</h2>
+                <p>Enter admin password to continue</p>
+                <form id="adminLoginForm">
+                    <input type="password" id="adminPassword" placeholder="Enter password" required>
+                    <button type="submit">Login</button>
+                    <div id="loginError" class="error">Invalid password!</div>
+                </form>
+            </div>
+        </div>
 
-document.getElementById("adminForm").addEventListener("submit",async e=>{
- e.preventDefault();
- const p=document.getElementById("pass").value;
- const ok=await loadPassword("settings/adminPassword");
- if(p===ok){sessionStorage.setItem("simple_admin_login","1");showAdmin();}
- else document.getElementById("err").style.display="block";
-});
-function showAdmin(){
- document.getElementById("loginView").style.display="none";
- document.getElementById("app").style.display="block";
- listenChats();
+        <!-- ======================================== -->
+        <!-- ADMIN PANEL -->
+        <!-- ======================================== -->
+        <div id="adminPanel" style="display:none;">
+            <div class="admin-container">
+                <!-- HEADER -->
+                <div class="admin-header">
+                    <div class="admin-header-left">
+                        <div class="logo-icon">SK</div>
+                        <div>
+                            <h2>🔐 Admin Panel</h2>
+                            <small>Manage your education platform</small>
+                        </div>
+                    </div>
+                    <div class="admin-header-right">
+                        <button type="button" class="admin-settings-gear" onclick="openAdminSettings()" title="Settings" aria-label="Settings">⚙️</button>
+                        <button onclick="logoutAdmin()" class="logout-btn">Logout</button>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="totalConversations">0</div>
+                        <div class="admin-stat-label">Active Conversations</div>
+                    </div>
+                </div>
+
+                <!-- TABS -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="showAdminTab('messages', this)">💬 Messages</button>
+                    <button class="admin-tab" onclick="showAdminTab('settings', this)">⚙️ Settings</button>
+                </div>
+
+                <!-- TAB: MESSAGES (WhatsApp-style live chat) -->
+                <div id="tab-messages" class="admin-tab-content active">
+                    <div class="chat-layout" id="chatLayout">
+                        <div class="chat-list-panel" id="chatListPanel">
+                            <div class="chat-list-header">💬 Conversations</div>
+                            <div id="chatList"><div class="empty-msg">Loading...</div></div>
+                        </div>
+                        <div class="chat-thread-panel">
+                            <div class="chat-thread-empty" id="chatThreadEmpty">
+                                <div style="font-size:50px;">💬</div>
+                                <p>Ek conversation select karein</p>
+                            </div>
+                            <div class="chat-thread-active" id="chatThreadActive" style="display:none;">
+                                <div class="chat-thread-header">
+                                    <button class="chat-back-btn" id="chatBackBtn">←</button>
+                                    <div>
+                                        <strong>💬 Chat with Wife 🥰</strong>
+                                        <small id="chatThreadUserName" style="display:block;color:#a5b4fc;font-size:12px;">User</small>
+                                        <small id="chatThreadPresence" style="display:block;font-size:11px;"></small>
+                                    </div>
+                                </div>
+                                <div class="chat-messages" id="chatMessages"></div>
+                                <div class="reply-preview-bar" id="adminReplyPreviewBar">
+                                    <div class="reply-preview-text" id="adminReplyPreviewText"></div>
+                                    <button class="reply-preview-cancel" id="adminReplyPreviewCancel">✕</button>
+                                </div>
+                                <div class="chat-input-bar">
+                                    <input type="text" id="chatLinkTitle" placeholder="🔗 Link title (optional)" class="chat-link-input">
+                                    <input type="url" id="chatLinkUrl" placeholder="🔗 Link URL (optional)" class="chat-link-input">
+                                    <div style="display:flex;gap:8px;">
+                                        <input type="text" id="chatReplyInput" placeholder="Type a message...">
+                                        <button id="chatSendBtn" class="chat-send-btn">➤</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: SETTINGS -->
+                <div id="tab-settings" class="admin-tab-content">
+                    <div class="admin-card">
+                        <h3>⚙️ Settings</h3>
+                        <div class="setting-item">
+                            <h4>🔧 Maintenance Mode</h4>
+                            <p>When enabled, users will see a maintenance page</p>
+                            <button id="maintenanceToggle" class="btn-warning" onclick="toggleMaintenance()">Turn ON</button>
+                            <div id="maintenanceStatus" style="margin-top:10px;color:#a5b4fc;">Current: OFF</div>
+                        </div>
+                        <div class="setting-item">
+                            <h4>💬 WhatsApp Channel Link</h4>
+                            <p>Ye link user panel mein "Join WhatsApp Channel" popup mein use hota hai. Isse change karne ke liye config.js mein WHATSAPP_GROUP_LINK edit karein.</p>
+                            <div style="color:#4cc9f0;font-size:13px;word-break:break-all;" id="waLinkDisplay"></div>
+                        </div>
+                    </div>
+
+                    <div class="admin-card">
+                        <h3>🔑 Passwords</h3>
+                        <div class="setting-item">
+                            <h4>🔐 Admin Panel Password</h4>
+                            <p>Ye password admin panel aur developer panel dono ke login ke liye use hota hai. Badalne ke baad, agli baar login karte waqt naya password use karein.</p>
+                            <form id="adminPasswordForm" style="max-width:340px;">
+                                <input type="password" id="newAdminPassword" placeholder="Naya admin password" required minlength="4" style="margin-bottom:10px;">
+                                <button type="submit" class="btn-primary">💾 Admin Password Update Karein</button>
+                                <div id="adminPasswordSuccess" class="success-msg">✅ Admin password update ho gaya!</div>
+                            </form>
+                        </div>
+                        <div class="setting-item">
+                            <h4>💌 Message Page Password</h4>
+                            <p>Ye password users ke liye "Message" (chat) page unlock karne ke kaam aata hai.</p>
+                            <form id="announcePasswordForm" style="max-width:340px;">
+                                <input type="password" id="newAnnouncePassword" placeholder="Naya message page password" required minlength="4" style="margin-bottom:10px;">
+                                <button type="submit" class="btn-primary">💾 Message Password Update Karein</button>
+                                <div id="announcePasswordSuccess" class="success-msg">✅ Message password update ho gaya!</div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CHECK ADMIN LOGIN
+        // ========================================
+        const adminLoggedIn = sessionStorage.getItem('admin_logged_in');
+
+        if (adminLoggedIn === 'true') {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            loadAdminData();
+        } else {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+
+        // ========================================
+        // ADMIN LOGIN
+        // Password ab Firebase se check hota hai (hardcoded nahi),
+        // taaki Settings tab se ise reset kiya ja sake.
+        // ========================================
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            loadAdminPassword().then(function(correctPassword) {
+                submitBtn.disabled = false;
+                if (password === correctPassword) {
+                    sessionStorage.setItem('admin_logged_in', 'true');
+                    location.reload();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            }).catch(function(err) {
+                submitBtn.disabled = false;
+                console.error('Admin password check failed:', err);
+                document.getElementById('loginError').style.display = 'block';
+            });
+        });
+
+        // ========================================
+        // TAB SWITCHING
+        // ========================================
+        function showAdminTab(tab, el) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            document.querySelectorAll('.admin-tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        // ========================================
+        // MESSAGES — WhatsApp-style live chat
+        // Har user ke liye Firebase mein 'chats/<user_id>/messages' node
+        // hota hai. Yahan se admin conversation list dekh sakta hai,
+        // kisi bhi user ke thread mein jaake seedha reply kar sakta hai —
+        // user ke screen pe bina refresh kiye turant dikh jaata hai
+        // (Firebase realtime listener ki wajah se).
+        // ========================================
+        let chatsCache = {};
+        let activeChatUserId = null;
+        let activeChatListener = null;
+        let activePresenceListener = null;
+        let renderedKeys = new Set();
+
+        // Remove chat messages older than 24 hours without ever blocking rendering.
+        function pruneOldChatMessages(uid, messages) {
+            if (!messages) return;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (!m || !m.timestamp) return;
+                const t = new Date(m.timestamp).getTime();
+                if (Number.isFinite(t) && t < cutoff) {
+                    db.ref('chats/' + uid + '/messages/' + key).remove().catch(function(err) {
+                        console.warn('Old message cleanup failed:', err);
+                    });
+                }
+            });
+        }
+
+        // Purane (24hr se zyada) messages ko render se pehle hi filter kar dete
+        // hain, taaki wo pehle dikhein aur phir delete hote hi gayab ho jayein
+        // — is "flash then disappear" glitch ko fix karta hai.
+        function filterFreshMessages(messages) {
+            if (!messages) return messages;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            const fresh = {};
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (m && m.timestamp && new Date(m.timestamp).getTime() >= cutoff) {
+                    fresh[key] = m;
+                }
+            });
+            return fresh;
+        }
+
+        function loadChatList() {
+            db.ref('chats').on('value', function(snap) {
+                chatsCache = snap.val() || {};
+                renderChatList();
+                document.getElementById('totalConversations').textContent = Object.keys(chatsCache).length;
+            }, function(err) {
+                console.error('loadChatList error:', err);
+                document.getElementById('chatList').innerHTML = '<div class="empty-msg">❌ Error loading</div>';
+            });
+        }
+
+        function isUnread(d) {
+            if (d.last_sender !== 'user') return false;
+            if (!d.admin_read_until) return true;
+            return new Date(d.last_timestamp).getTime() > new Date(d.admin_read_until).getTime();
+        }
+
+        function renderChatList() {
+            const container = document.getElementById('chatList');
+            const entries = Object.keys(chatsCache).map(function(uid) {
+                return { uid: uid, data: chatsCache[uid] };
+            }).sort(function(a, b) {
+                return new Date(b.data.last_timestamp || 0) - new Date(a.data.last_timestamp || 0);
+            });
+
+            if (!entries.length) {
+                container.innerHTML = '<div class="empty-msg">Koi conversation nahi hai</div>';
+                return;
+            }
+
+            let html = '';
+            entries.forEach(function(entry) {
+                const d = entry.data;
+                const preview = (d.last_message || '').split(' ').slice(0, 6).join(' ');
+                const activeClass = entry.uid === activeChatUserId ? 'active' : '';
+                const unreadClass = isUnread(d) ? 'unread' : '';
+                const time = d.last_timestamp ? new Date(d.last_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                html += `
+                    <div class="chat-list-item ${activeClass} ${unreadClass}" onclick="openChatThread('${entry.uid}')">
+                        <span class="clu-time">${time}</span>
+                        <div class="clu-name">${d.online ? '<span class="clu-online-dot"></span>' : ''}${d.user_name || 'Unknown'}${isUnread(d) ? '<span class="clu-unread-badge"></span>' : ''}</div>
+                        <div class="clu-preview">${d.last_sender === 'admin' ? 'You: ' : ''}${preview}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function openChatThread(uid) {
+            const previousUid = activeChatUserId; // purana chat, jiska listener hatana hai
+            activeChatUserId = uid;
+            renderedKeys = new Set(); // naya thread — fresh render
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('chatLayout').classList.add('thread-open');
+            document.documentElement.classList.add('chat-fullscreen-lock');
+            document.body.classList.add('chat-fullscreen-lock');
+            document.getElementById('chatThreadEmpty').style.display = 'none';
+            document.getElementById('chatThreadActive').style.display = 'flex';
+            document.getElementById('chatThreadUserName').textContent = (chatsCache[uid] && chatsCache[uid].user_name) || 'User';
+            renderChatList();
+
+            // Purana thread listener hatao — SAHI uid aur SAHI path se, warna
+            // purana listener hamesha chalte rehta hai (listener leak), jo
+            // dheere-dheere site hang aur scroll-jump jaisi problems banata hai.
+            if (previousUid && activeChatListener) {
+                db.ref('chats/' + previousUid + '/messages').off('value', activeChatListener);
+            }
+            if (previousUid && activePresenceListener) {
+                db.ref('chats/' + previousUid).off('value', activePresenceListener);
+            }
+            if (previousUid && previousUid !== uid) {
+                db.ref('chats/' + previousUid).update({ admin_typing: false }).catch(function() {});
+            }
+            activeChatListener = null;
+            activePresenceListener = null;
+            clearTimeout(adminTypingTimeout);
+
+            // PRESENCE + MARK AS READ — is chat node ko sunte hain taaki
+            // online/last-seen turant dikhe, aur jab bhi naya user
+            // message aaye (jabki admin thread khola hua hai), turant
+            // "read" mark ho jaye.
+            activePresenceListener = function(snap) {
+                const data = snap.val() || {};
+                currentChatMeta = data; // Seen details ke liye latest read timestamps yahin se lo.
+                renderPresence(data);
+                updateAdminMessageDetails();
+
+                if (data.last_sender === 'user' && activeChatUserId === uid) {
+                    const now = new Date().toISOString();
+                    if (!data.admin_read_until || new Date(data.last_timestamp) > new Date(data.admin_read_until)) {
+                        db.ref('chats/' + uid).update({ admin_read_until: now }).catch(function() {});
+                    }
+                }
+            };
+            db.ref('chats/' + uid).on('value', activePresenceListener);
+
+            activeChatListener = function(snap) {
+                try {
+                    const rawMessages = snap.val();
+                    pruneOldChatMessages(uid, rawMessages); // background cleanup, silent
+                    const messages = filterFreshMessages(rawMessages); // never render expired ones
+                    renderChatMessages(messages);
+                    markUserMessagesSeen(uid, messages);
+                } catch (err) {
+                    console.error('Admin chat render error:', err);
+                    document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">⚠️ Messages render nahi ho paaye. Retry karke dekhein.</div>';
+                }
+            };
+            db.ref('chats/' + uid + '/messages').on('value', activeChatListener, function(err) {
+                console.error('Admin chat load error:', err);
+                document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">❌ Messages load nahi ho paaye. Firebase/Internet check karein.</div>';
+            });
+        }
+
+        function markUserMessagesSeen(uid, messages) {
+            messages = messages || currentThreadMessages || {};
+            const userMessages = Object.keys(messages).filter(function(key) {
+                return messages[key] && messages[key].sender === 'user' && messages[key].timestamp;
+            });
+            if (!userMessages.length) return;
+
+            const latestUserTs = Math.max.apply(null, userMessages.map(function(key) {
+                return new Date(messages[key].timestamp).getTime();
+            }));
+            const alreadyRead = currentChatMeta && currentChatMeta.admin_read_until
+                ? new Date(currentChatMeta.admin_read_until).getTime() : 0;
+            if (latestUserTs <= alreadyRead) {
+                updateAdminMessageDetails();
+                return;
+            }
+
+            const seenAt = new Date().toISOString();
+            currentChatMeta.admin_read_until = seenAt;
+            db.ref('chats/' + uid).update({ admin_read_until: seenAt }).then(function() {
+                updateAdminMessageDetails();
+            }).catch(function(err) {
+                console.warn('Admin seen update failed:', err);
+            });
+        }
+
+        function renderPresence(data) {
+            const el = document.getElementById('chatThreadPresence');
+            if (!el) return;
+            if (data.user_typing) {
+                el.innerHTML = 'typing<span class="typing-dots"><span></span><span></span><span></span></span>';
+                el.style.color = '#3ddc84';
+            } else if (data.online) {
+                el.textContent = '🟢 Online';
+                el.style.color = '#3ddc84';
+            } else if (data.last_seen) {
+                el.textContent = 'Last seen: ' + formatLastSeen(data.last_seen);
+                el.style.color = '#6a7a9e';
+            } else {
+                el.textContent = '';
+            }
+        }
+
+        let adminReplyingTo = null;
+        let currentThreadMessages = {};
+        let currentChatMeta = {};
+
+        function formatAdminMessageDateTime(ts) {
+            return new Date(ts).toLocaleString([], {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function getAdminSeenTime(m) {
+            if (!m || !m.timestamp) return null;
+            const sent = new Date(m.timestamp).getTime();
+
+            if (m.sender === 'user' && currentChatMeta.admin_read_until) {
+                const read = new Date(currentChatMeta.admin_read_until).getTime();
+                if (sent <= read) return formatAdminMessageDateTime(currentChatMeta.admin_read_until);
+            }
+
+            if (m.sender === 'admin' && currentChatMeta.user_read_until) {
+                const read = new Date(currentChatMeta.user_read_until).getTime();
+                if (sent <= read) return formatAdminMessageDateTime(currentChatMeta.user_read_until);
+            }
+
+            return null;
+        }
+
+        function buildAdminBubbleHtml(key, m) {
+            const rowCls = m.sender === 'admin' ? 'from-admin' : 'from-user';
+            const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const quotePreview = m.reply_to ? (m.reply_to.length > 60 ? m.reply_to.slice(0, 60) + '…' : m.reply_to) : null;
+            const seenTime = getAdminSeenTime(m);
+
+            const details = `
+                <div class="admin-message-details" data-admin-details-key="${key}">
+                    <div>Sent: ${formatAdminMessageDateTime(m.timestamp)}</div>
+                    <div class="${seenTime ? 'seen' : 'not-seen'}">
+                        ${seenTime ? 'Seen: ' + seenTime : 'Not seen yet'}
+                    </div>
+                </div>`;
+
+            return `
+                <div class="chat-row ${rowCls}" id="admmsgrow-${key}">
+                    ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
+                    <div class="chat-bubble" onclick="toggleAdminMessageDetails(event, '${key}')">
+                        ${quotePreview ? `<div class="cb-quote">${quotePreview}</div>` : ''}
+                        <div>${m.text}</div>
+                        ${m.link_url ? `<div><a href="${m.link_url}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${m.link_title || 'Open Link'}</a></div>` : ''}
+                        <div class="cb-time">${time}</div>
+                        ${details}
+                    </div>
+                    ${rowCls === 'from-user' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
+                </div>
+            `;
+        }
+
+        function toggleAdminMessageDetails(event, key) {
+            event.stopPropagation();
+            const bubble = document.querySelector('#admmsgrow-' + key + ' .chat-bubble');
+            if (!bubble) return;
+
+            document.querySelectorAll('.chat-bubble.details-open').forEach(function(el) {
+                if (el !== bubble) el.classList.remove('details-open');
+            });
+
+            bubble.classList.toggle('details-open');
+        }
+
+        function updateAdminMessageDetails() {
+            const messages = currentThreadMessages || {};
+            Object.keys(messages).forEach(function(key) {
+                const info = document.querySelector('.admin-message-details[data-admin-details-key="' + key + '"]');
+                if (!info) return;
+
+                const seenTime = getAdminSeenTime(messages[key]);
+                info.innerHTML =
+                    '<div>Sent: ' + formatAdminMessageDateTime(messages[key].timestamp) + '</div>' +
+                    '<div class="' + (seenTime ? 'seen' : 'not-seen') + '">' +
+                    (seenTime ? 'Seen: ' + seenTime : 'Not seen yet') +
+                    '</div>';
+            });
+        }
+
+        function renderChatMessages(messages) {
+            const container = document.getElementById('chatMessages');
+            currentThreadMessages = messages || {};
+
+            if (!messages) {
+                container.innerHTML = '<div class="empty-msg">Abhi koi message nahi</div>';
+                renderedKeys.clear();
+                return;
+            }
+
+            const emptyState = container.querySelector('.empty-msg');
+            if (emptyState) container.innerHTML = '';
+
+            const keys = Object.keys(messages).sort(function(a, b) {
+                return new Date(messages[a].timestamp) - new Date(messages[b].timestamp);
+            });
+
+            let appended = false;
+            keys.forEach(function(key) {
+                if (renderedKeys.has(key)) return;
+                renderedKeys.add(key);
+                container.insertAdjacentHTML('beforeend', buildAdminBubbleHtml(key, messages[key]));
+                appended = true;
+            });
+
+            renderedKeys.forEach(function(key) {
+                if (!messages[key]) {
+                    const el = document.getElementById('admmsgrow-' + key);
+                    if (el) el.remove();
+                    renderedKeys.delete(key);
+                }
+            });
+
+            if (appended) container.scrollTop = container.scrollHeight;
+            updateAdminMessageDetails();
+        }
+
+        function setAdminReply(key) {
+            const m = currentThreadMessages[key];
+            if (!m) return;
+            adminReplyingTo = m.text;
+            const preview = m.text.length > 70 ? m.text.slice(0, 70) + '…' : m.text;
+            document.getElementById('adminReplyPreviewText').textContent = '↩️ ' + preview;
+            document.getElementById('adminReplyPreviewBar').classList.add('show');
+            document.getElementById('chatReplyInput').focus();
+        }
+
+        document.getElementById('adminReplyPreviewCancel').addEventListener('click', function() {
+            adminReplyingTo = null;
+            document.getElementById('adminReplyPreviewBar').classList.remove('show');
+        });
+
+        document.getElementById('chatBackBtn').addEventListener('click', function() {
+            document.getElementById('chatLayout').classList.remove('thread-open');
+            document.documentElement.classList.remove('chat-fullscreen-lock');
+            document.body.classList.remove('chat-fullscreen-lock');
+        });
+
+        function sendAdminReply() {
+            if (!activeChatUserId) return;
+            const input = document.getElementById('chatReplyInput');
+            const text = input.value.trim();
+            const linkTitle = document.getElementById('chatLinkTitle').value.trim();
+            const linkUrl = document.getElementById('chatLinkUrl').value.trim();
+
+            if (!text) {
+                showToast('Kuch likhein!', 'error');
+                return;
+            }
+            if ((linkTitle && !linkUrl) || (!linkTitle && linkUrl)) {
+                showToast('Link ke liye Title aur URL dono bharein!', 'error');
+                return;
+            }
+            clearAdminTyping();
+
+            const msgData = {
+                sender: 'admin',
+                text: text,
+                timestamp: new Date().toISOString()
+            };
+            if (linkTitle && linkUrl) {
+                msgData.link_title = linkTitle;
+                msgData.link_url = linkUrl;
+            }
+            if (adminReplyingTo) {
+                msgData.reply_to = adminReplyingTo;
+            }
+
+            const uid = activeChatUserId;
+            db.ref('chats/' + uid + '/messages').push(msgData).then(function() {
+                return db.ref('chats/' + uid).update({
+                    last_message: text,
+                    last_sender: 'admin',
+                    last_timestamp: msgData.timestamp
+                });
+            }).then(function() {
+                input.value = '';
+                document.getElementById('chatLinkTitle').value = '';
+                document.getElementById('chatLinkUrl').value = '';
+                adminReplyingTo = null;
+                document.getElementById('adminReplyPreviewBar').classList.remove('show');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Send nahi ho paya', 'error');
+            });
+        }
+
+        document.getElementById('chatSendBtn').addEventListener('click', sendAdminReply);
+        document.getElementById('chatReplyInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendAdminReply();
+        });
+
+        // ========================================
+        // TYPING INDICATOR — admin type kare to user ko
+        // "typing..." dikhta hai (user side se bhi read hota hai).
+        // ========================================
+        let adminTypingTimeout = null;
+        function clearAdminTyping() {
+            clearTimeout(adminTypingTimeout);
+            if (activeChatUserId) {
+                db.ref('chats/' + activeChatUserId).update({ admin_typing: false }).catch(function() {});
+            }
+        }
+        document.getElementById('chatReplyInput').addEventListener('input', function() {
+            if (!activeChatUserId) return;
+            db.ref('chats/' + activeChatUserId).update({ admin_typing: true }).catch(function() {});
+            clearTimeout(adminTypingTimeout);
+            adminTypingTimeout = setTimeout(clearAdminTyping, 2000);
+        });
+
+        // ========================================
+        // LOAD ADMIN DATA
+        // ========================================
+        function loadAdminData() {
+            loadChatList();
+            loadStats();
+            setupAdminPresence();
+            document.getElementById('waLinkDisplay').textContent = WHATSAPP_GROUP_LINK;
+        }
+
+        // Admin ka online/last-seen status — users ko unke chat header
+        // mein dikhta hai (ek hi admin hai, isliye global node)
+        function setupAdminPresence() {
+            const adminPresenceRef = db.ref('admin_presence');
+            db.ref('.info/connected').on('value', function(snap) {
+                if (snap.val() === false) return;
+                adminPresenceRef.onDisconnect().update({ online: false, last_seen: new Date().toISOString() }).then(function() {
+                    adminPresenceRef.update({ online: true });
+                });
+            });
+        }
+
+        // ========================================
+        // LOAD STATS
+        // ========================================
+        function loadStats() {
+            // Maintenance status
+            db.ref('settings/maintenance').on('value', function(snap) {
+                const status = snap.val() === 'on' ? 'ON' : 'OFF';
+                document.getElementById('maintenanceStatus').textContent = 'Current: ' + status;
+                document.getElementById('maintenanceToggle').textContent = status === 'ON' ? 'Turn OFF' : 'Turn ON';
+                document.getElementById('maintenanceToggle').className = status === 'ON' ? 'btn-success' : 'btn-warning';
+            });
+        }
+
+        // ========================================
+        // TOGGLE MAINTENANCE
+        // ========================================
+        function toggleMaintenance() {
+            db.ref('settings/maintenance').once('value').then(function(snap) {
+                const current = snap.val() === 'on' ? 'off' : 'on';
+                return db.ref('settings/maintenance').set(current);
+            }).then(function() {
+                showToast('✅ Maintenance mode updated');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        }
+
+        // ========================================
+        // CHANGE PASSWORDS
+        // ========================================
+        document.getElementById('adminPasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newAdminPassword').value.trim();
+            if (newPass.length < 4) {
+                showToast('Password kam se kam 4 characters ka hona chahiye', 'error');
+                return;
+            }
+            updateAdminPassword(newPass).then(function() {
+                document.getElementById('adminPasswordSuccess').style.display = 'block';
+                setTimeout(() => document.getElementById('adminPasswordSuccess').style.display = 'none', 3000);
+                document.getElementById('adminPasswordForm').reset();
+                showToast('✅ Admin password update ho gaya!');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        });
+
+        document.getElementById('announcePasswordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newPass = document.getElementById('newAnnouncePassword').value.trim();
+            if (newPass.length < 4) {
+                showToast('Password kam se kam 4 characters ka hona chahiye', 'error');
+                return;
+            }
+            updateAnnouncementPassword(newPass).then(function() {
+                document.getElementById('announcePasswordSuccess').style.display = 'block';
+                setTimeout(() => document.getElementById('announcePasswordSuccess').style.display = 'none', 3000);
+                document.getElementById('announcePasswordForm').reset();
+                showToast('✅ Message page password update ho gaya!');
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        });
+
+        // ========================================
+        // LOGOUT ADMIN
+        // ========================================
+        function logoutAdmin() {
+            db.ref('admin_presence').update({
+                online: false,
+                last_seen: new Date().toISOString()
+            }).catch(function() {}).finally(function() {
+                sessionStorage.removeItem('admin_logged_in');
+                location.reload();
+            });
+        }
+
+        // ========================================
+        // EXPOSE FUNCTIONS
+        // ========================================
+        window.openChatThread = openChatThread;
+        window.setAdminReply = setAdminReply;
+        window.toggleMaintenance = toggleMaintenance;
+        window.logoutAdmin = logoutAdmin;
+        window.showAdminTab = showAdminTab;
+    </script>
+<script>
+function openAdminSettings(){
+    const settingsTab=document.querySelector('.admin-tabs .admin-tab[onclick*="settings"]');
+    if(settingsTab){showAdminTab('settings',settingsTab);}
 }
-function listenChats(){
- db.ref("chats").on("value",snap=>{
-  const box=document.getElementById("chatList"), data=snap.val()||{};
-  const arr=Object.entries(data).sort((a,b)=>(b[1].updated_at||0)-(a[1].updated_at||0));
-  box.innerHTML=arr.length?arr.map(([id,c])=>{
-    const unread=c.last_sender==="user";
-    return `<div class="item ${id===activeUid?'active':''}" onclick="openChat('${id}')"><strong>${esc(c.user_name||"User")}</strong>${unread?'<span class="dot"></span>':''}<small>${esc(c.last_message||"No messages")}</small></div>`;
-  }).join(""):`<div class="empty" style="height:180px">No chats yet</div>`;
- });
-}
-function openChat(id){
- activeUid=id;document.getElementById("layout").classList.add("open");
- const chat=db.ref("chats/"+id);
- chatListener&&chatListener();
- chatListener=chat.child("messages").on("value",snap=>{
-   const box=document.getElementById("threadMessages"), data=snap.val()||{};
-   const arr=Object.values(data).sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
-   box.innerHTML=arr.length?arr.map(m=>`<div class="row ${m.sender==='admin'?'admin':'user'}"><div class="bubble">${esc(m.message)}<div class="time">${fmt(m.timestamp)}</div></div></div>`).join(""):`<div class="empty">No messages yet</div>`;
-   box.scrollTop=box.scrollHeight;
- });
- document.getElementById("threadName").textContent="Loading...";
- chat.child("user_name").once("value").then(s=>document.getElementById("threadName").textContent=s.val()||"User");
- document.getElementById("threadSub").textContent="Online chat";
- document.getElementById("reply").disabled=false;document.getElementById("send").disabled=false;
- typingListener&&typingListener();
- typingListener=chat.child("typing/user").on("value",s=>{
-   const el=document.getElementById("adminTyping");el.textContent=s.val()?"User is typing...":"";el.classList.toggle("show",s.val()===true);
- });
-}
-document.getElementById("reply").addEventListener("input",()=>{
- if(!activeUid)return;
- const r=db.ref("chats/"+activeUid+"/typing/admin");
- r.set(!!document.getElementById("reply").value.trim()).catch(()=>{});
- clearTimeout(typingTimer);
- typingTimer=setTimeout(()=>r.set(false).catch(()=>{}),1400);
-});
-document.getElementById("replyForm").addEventListener("submit",async e=>{
- e.preventDefault();if(!activeUid)return;
- const input=document.getElementById("reply"),text=input.value.trim();if(!text)return;
- const chat=db.ref("chats/"+activeUid), ref=chat.child("messages").push();
- try{
-  await ref.set({sender:"admin",message:text,timestamp:Date.now()});
-  await chat.update({last_message:text,last_sender:"admin",updated_at:Date.now()});
-  chat.child("typing/admin").set(false).catch(()=>{});
-  input.value="";input.focus();
- }catch(err){alert("Reply send nahi hua. Firebase Rules check karein.");console.error(err)}
-});
-function closeThread(){document.getElementById("layout").classList.remove("open")}
-function adminLogout(){sessionStorage.removeItem("simple_admin_login");location.reload()}
-function esc(s){const d=document.createElement("div");d.textContent=s??"";return d.innerHTML}
-function fmt(v){return new Date(v||Date.now()).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}
-window.addEventListener("beforeunload",()=>{if(activeUid)db.ref("chats/"+activeUid+"/typing/admin").set(false).catch(()=>{})});
+window.openAdminSettings=openAdminSettings;
 </script>
+
 </body>
 </html>
+<style>
+/* ===== LAST FIX: truly compact message bubbles ===== */
+#chatLayout.thread-open .chat-row{
+  display:flex !important;
+  align-items:flex-end !important;
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  margin:6px 0 !important;
+}
+#chatLayout.thread-open .chat-bubble{
+  display:inline-flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  flex:0 1 auto !important;
+  width:auto !important;
+  max-width:68% !important;
+  min-width:0 !important;
+  height:auto !important;
+  min-height:0 !important;
+  max-height:none !important;
+  padding:8px 10px 6px !important;
+  margin:0 !important;
+  font-size:14px !important;
+  line-height:1.35 !important;
+  white-space:pre-line !important;
+  overflow:visible !important;
+  word-break:break-word !important;
+  overflow-wrap:anywhere !important;
+}
+#chatLayout.thread-open .chat-row.from-user .chat-bubble{
+  align-self:flex-start !important;
+  width:auto !important;
+}
+#chatLayout.thread-open .chat-row.from-admin .chat-bubble{
+  align-self:flex-end !important;
+  width:auto !important;
+}
+/* Details never stretch the bubble itself */
+#chatLayout.thread-open .admin-message-details{
+  display:none !important;
+  width:auto !important;
+  max-width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  flex:none !important;
+}
+#chatLayout.thread-open .chat-bubble.details-open .admin-message-details{
+  display:block !important;
+}
+/* Keep the message text natural width */
+#chatLayout.thread-open .chat-bubble > div:not(.cb-quote):not(.admin-message-details):not(:has(a)){
+  width:auto !important;
+  max-width:100% !important;
+}
+@media(max-width:420px){
+  #chatLayout.thread-open .chat-bubble{
+    max-width:68% !important;
+    padding:8px 10px 6px !important;
+    font-size:14px !important;
+  }
+}
+
+/* =========================================================
+   FINAL SCROLL FIX
+   Bahut saare purane CSS blocks upar overflow/height set kar rahe
+   the aur ek-dusre ko override kar rahe the, jiski wajah se
+   scroll kaam nahi kar raha tha. Ye aakhri, sabse zyada priority
+   wala rule hai — hamesha jeetega aur scroll guaranteed rakhega.
+   ========================================================= */
+.chat-thread-panel{
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.chat-thread-active{
+  display:flex !important;
+  flex-direction:column !important;
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 2px;
+}
+.typing-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #3ddc84;
+    animation: typingBounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: .5; }
+    30% { transform: translateY(-3px); opacity: 1; }
+}
+</style>
