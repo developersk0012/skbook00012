@@ -1,116 +1,934 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Message - SK Education</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat - SK Chat</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <script src="config.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#07111f;--panel:#0c1728;--line:rgba(255,255,255,.08);--text:#eef4ff;--muted:#8fa0b7;--bubble:#17283e;--mine:#6655f2;--accent:#7564ff;--online:#54e5c2}
+:root{
+  --bg:#07111f; --panel:#0b1728; --panel2:#111f33;
+  --text:#eef4ff; --muted:#8fa0b7; --line:rgba(255,255,255,.08);
+  --bubble:#17283e; --mine:#5d4be9; --accent:#7564ff; --online:#54e5c2;
+}
 html,body{width:100%;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:Inter,'Segoe UI',Arial,sans-serif}
-#chatApp{height:100dvh;display:flex;flex-direction:column;max-width:700px;margin:auto;border-left:1px solid var(--line);border-right:1px solid var(--line);background:radial-gradient(circle at 20% 8%,rgba(117,100,255,.07),transparent 25%),#07111f}
-.header{height:76px;flex:0 0 76px;display:flex;align-items:center;padding:8px 13px;gap:10px;background:rgba(12,23,40,.96);border-bottom:1px solid var(--line);backdrop-filter:blur(18px)}
-.header-left{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
-.back{font-size:34px;color:#dce5f3;width:28px}
-.logo{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#4361ee,#f72585);font-size:13px;font-weight:800}
-h2{font-size:18px;white-space:nowrap}
-.sub{font-size:10px;color:var(--online);margin-top:3px}
-.menu{position:relative}
-.menu>button{width:38px;height:38px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.035);color:#c8d3e2;font-size:23px}
-.dropdown{display:none;position:absolute;right:0;top:45px;width:130px;background:#101d30;border:1px solid var(--line);border-radius:13px;padding:5px;z-index:10;box-shadow:0 14px 35px rgba(0,0,0,.35)}
-.dropdown.open{display:block}.dropdown button{width:100%;height:36px;background:none;border:0;color:#fff;text-align:left;padding:0 10px;border-radius:8px}
-#typing{height:0;opacity:0;overflow:hidden;color:var(--online);font-size:11px;padding-left:18px;transition:.15s;background:#07111f}
-#typing.show{height:25px;opacity:1;padding-top:5px}
-.messages{flex:1;min-height:0;overflow-y:auto;padding:14px 12px 12px;background:radial-gradient(circle at 25% 25%,rgba(117,100,255,.045),transparent 27%),#07111f}
-.row{display:flex;margin:7px 0;align-items:flex-end}
-.row.user{justify-content:flex-end}.row.admin{justify-content:flex-start}
-.bubble{max-width:min(78%,420px);padding:9px 11px 7px;border-radius:17px 17px 17px 5px;background:var(--bubble);border:1px solid rgba(255,255,255,.05);font-size:14px;line-height:1.38;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 4px 14px rgba(0,0,0,.14)}
-.row.user .bubble{background:linear-gradient(135deg,#6655f2,#5545dc);border-radius:17px 17px 5px 17px}
-.time{margin-top:4px;text-align:right;font-size:9px;opacity:.6}
-.empty{text-align:center;color:#71829a;margin-top:35%;font-size:13px}
-.composer{flex:0 0 auto;display:flex;gap:8px;padding:8px 9px calc(9px + env(safe-area-inset-bottom));background:#0a1727;border-top:1px solid var(--line)}
-input#msg{flex:1;height:46px;border-radius:15px;border:1px solid var(--line);background:#101e32;color:#fff;padding:0 14px;outline:none;font-size:14px}
-input#msg:focus{border-color:rgba(117,100,255,.55);box-shadow:0 0 0 3px rgba(117,100,255,.08)}
-.send{width:46px;height:46px;border:0;border-radius:15px;background:linear-gradient(135deg,#7564ff,#5143db);color:#fff;font-size:20px}
-@media(max-width:600px){.logo{display:none}.bubble{max-width:82%;font-size:14px}}
+body{ min-height:100vh; background:#07111f; color:var(--text); font-family:Inter,Segoe UI,Roboto,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+
+/* ===== PASSWORD LOCK / CLOSED SCREEN ===== */
+#lockScreen,#closedScreen{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  background: radial-gradient(circle at 20% 10%,rgba(117,100,255,.22),transparent 32%),
+              radial-gradient(circle at 85% 90%,rgba(45,212,191,.10),transparent 28%), #07111f;
+}
+.lock-container{ width:min(100%,390px); padding:30px 24px; border:1px solid var(--line); border-radius:24px; background:rgba(13,27,46,.94); box-shadow:0 25px 80px rgba(0,0,0,.45); text-align:center; }
+.lock-icon{font-size:46px;margin-bottom:12px}
+.lock-container h2{font-size:22px;margin-bottom:7px}
+.lock-container p{font-size:13px;color:var(--muted);margin-bottom:20px}
+#unlockForm{display:flex;flex-direction:column;gap:10px}
+#unlockPassword{ width:100%;height:48px;padding:0 15px; border-radius:14px;border:1px solid var(--line); background:#101e32;color:white;outline:none;font-size:15px; }
+.lock-btn{ height:48px;border:0;border-radius:14px; background:linear-gradient(135deg,#7564ff,#5143d8); color:white;font-weight:700;font-size:15px; }
+.lock-error{display:none;color:#ff8f9f;font-size:12px}
+.lock-back-link{display:inline-block;margin-top:16px;color:#aebbd0;text-decoration:none;font-size:12px}
+
+/* ===== MAIN CHAT ===== */
+#chatApp{ width:100%; height:100dvh; min-height:100vh; display:none; flex-direction:column; background: radial-gradient(circle at 20% 8%,rgba(117,100,255,.07),transparent 25%), #07111f; }
+#chatApp>.header{ flex:0 0 82px; height:82px; display:flex; align-items:center; gap:12px; padding:10px 18px; background:rgba(12,23,40,.96); border-bottom:1px solid var(--line); backdrop-filter:blur(18px); box-shadow:0 4px 20px rgba(0,0,0,.12); }
+.header-left{ min-width:0; flex:1; display:flex; align-items:center; gap:12px; }
+.header-left:before{ content:"‹"; display:grid; place-items:center; width:34px;height:42px; color:#dce5f3; font-size:40px; line-height:1; font-weight:300; }
+.header-left>div:last-child{min-width:0}
+.header-left h2{ font-size:0; }
+.header-left h2:after{ content:"SK Chat"; font-size:20px; font-weight:800; }
+.header-left small{ display:block; margin-top:6px; color:var(--online); font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.header-right{ display:flex; align-items:center; gap:7px; }
+.icon-btn{ width:42px;height:42px; display:grid;place-items:center; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.035); color:#c8d3e2; text-decoration:none; font-size:20px; }
+.notify-btn{ display:flex; align-items:center; gap:6px; height:42px; padding:0 14px; border-radius:50px; border:1px solid rgba(76,201,240,.3); background:rgba(76,201,240,.12); color:#4cc9f0; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.menu-trigger{ width:42px;height:42px; overflow:hidden; font-size:0; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.035); color:#c8d3e2; cursor:pointer; }
+.menu-trigger:after{ content:"⋮"; font-size:25px; line-height:1; }
+.chat-menu{ position:absolute; top:78px; right:16px; background:#101f34; border:1px solid var(--line); border-radius:14px; box-shadow:0 20px 50px rgba(0,0,0,.5); display:none; flex-direction:column; min-width:190px; overflow:hidden; z-index:40; }
+.chat-menu.open{display:flex}
+.chat-menu button{ background:transparent; border:0; color:#eef4ff; text-align:left; padding:13px 16px; font-size:14px; cursor:pointer; }
+.chat-menu button:hover{ background:rgba(255,255,255,.06); }
+
+/* Delete button */
+.del-icon-btn{ flex:0 0 auto; width:30px;height:30px; display:grid;place-items:center; border:0;border-radius:50%; background:transparent; color:#ff8fa3; font-size:15px; cursor:pointer; opacity:.75; transition:.15s; }
+.del-icon-btn:hover{ background:rgba(255,80,110,.15); opacity:1; }
+
+/* Confirm delete */
+#deleteConfirmOverlay{ position:fixed;inset:0;z-index:1200; display:none; align-items:center;justify-content:center; background:rgba(3,7,14,.6); backdrop-filter:blur(3px); padding:20px; }
+#deleteConfirmOverlay.show{ display:flex; }
+.delete-confirm-box{ width:min(100%,320px); background:#101f34; border:1px solid var(--line); border-radius:18px; padding:22px 20px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+.delete-confirm-box .dc-icon{ font-size:34px; margin-bottom:8px; }
+.delete-confirm-box h3{ font-size:16px; margin-bottom:6px; }
+.delete-confirm-box p{ font-size:13px; color:var(--muted); margin-bottom:18px; }
+.dc-actions{ display:flex; gap:10px; }
+.dc-actions button{ flex:1;height:42px;border:0;border-radius:12px; font-weight:700;font-size:14px;cursor:pointer; }
+.dc-cancel{ background:rgba(255,255,255,.08); color:#dce5f3; }
+.dc-confirm{ background:linear-gradient(135deg,#ff5f7a,#e0324f); color:#fff; }
+
+/* Message area */
+.chat-messages{ flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:16px 18px 14px; scroll-behavior:smooth; overscroll-behavior:contain; background: radial-gradient(circle at 30% 25%,rgba(117,100,255,.045),transparent 28%), linear-gradient(180deg,#07111f 0%,#06101d 100%); }
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.10);border-radius:20px}
+.chat-messages:before{ content:"TODAY"; display:block; width:max-content; margin:2px auto 22px; color:#72839a; font-size:11px; font-weight:600; letter-spacing:.3px; }
+
+.chat-row{ display:flex; align-items:flex-end; width:100%; margin:7px 0; gap:4px; animation:msgIn .16s ease-out both; }
+.chat-row.from-admin{justify-content:flex-start}
+.chat-row.from-user{justify-content:flex-end}
+@keyframes msgIn{ from{opacity:.55;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+.chat-bubble{ display:inline-block; width:fit-content; max-width:min(78%,420px); min-width:0; padding:8px 11px 6px; border-radius:18px 18px 18px 6px; background:var(--bubble); border:1px solid rgba(255,255,255,.055); color:#edf3fc; font-size:15px; line-height:1.4; overflow-wrap:anywhere; box-shadow:0 6px 20px rgba(0,0,0,.12); cursor:pointer; }
+.from-user .chat-bubble{ background:linear-gradient(135deg,#6655f2,#5545dc); border-color:rgba(255,255,255,.08); border-radius:18px 18px 6px 18px; }
+.cb-time{ display:none; margin-top:4px; text-align:right; font-size:10px; line-height:1; color:rgba(255,255,255,.52); white-space:nowrap; }
+.from-user .cb-time{color:rgba(255,255,255,.74)}
+.cb-tick{margin-left:5px;font-size:13px;letter-spacing:-2px}
+.cb-tick.read{color:#8feaff}
+.cb-quote{ margin:-1px 0 7px; padding:7px 9px; border-left:3px solid #887bff; border-radius:8px; background:rgba(0,0,0,.16); color:#bdc8da; font-size:11px; line-height:1.35; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.from-user .cb-quote{background:rgba(0,0,0,.12);color:#e1e6f2}
+.cb-link{ display:inline-block; margin-top:6px; color:#b8eaff; text-decoration:none; font-size:12px; word-break:break-all; }
+.reply-icon-btn{ flex:0 0 1px; width:1px;height:1px; opacity:0; border:0;background:transparent; overflow:hidden; padding:0;margin:0; }
+
+.message-details{ display:none; margin-top:6px; padding-top:5px; border-top:1px solid rgba(255,255,255,.10); font-size:9px; line-height:1.5; color:rgba(255,255,255,.68); text-align:right; }
+.chat-bubble.details-open .message-details{ display:block; }
+.message-details .seen{color:#8feaff}
+.message-details .not-seen{color:#aebbd0}
+
+.chat-loading,.chat-empty-state{ min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--muted); text-align:center; font-size:13px; }
+.chat-empty-state .icon{font-size:28px}
+.spinner{ width:28px;height:28px; border:3px solid rgba(255,255,255,.12); border-top-color:#7564ff; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Reply preview */
+.reply-preview-bar{ display:none; flex:0 0 auto; align-items:center; gap:8px; padding:8px 13px; background:#0e1b2e; border-top:1px solid var(--line); }
+.reply-preview-bar.show{display:flex}
+.reply-preview-text{ flex:1; min-width:0; padding:7px 9px; border-left:3px solid var(--accent); border-radius:8px; background:rgba(117,100,255,.09); color:#bac7da; font-size:11px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.reply-preview-cancel{ width:30px;height:30px;border:0; border-radius:9px;background:rgba(255,255,255,.05); color:#aebbd0;font-size:14px; }
+
+/* Composer */
+.chat-input-bar{ flex:0 0 auto; min-height:68px; display:flex; align-items:center; gap:9px; padding:9px 18px 11px; background:rgba(10,23,39,.98); border-top:1px solid var(--line); box-shadow:0 -8px 28px rgba(0,0,0,.12); position:relative; z-index:20; }
+.chat-photo-btn{ flex:0 0 48px; width:48px;height:48px; border:1px solid var(--line); border-radius:16px; background:#101e32; color:#c2cede; font-size:22px; cursor:pointer; }
+#chatTextInput{ flex:1; min-width:0; height:48px; padding:0 15px; border:1px solid var(--line); border-radius:17px; background:#101e32; color:#f4f7fb; outline:none; font-size:15px; }
+#chatTextInput::placeholder{color:#71829a}
+#chatTextInput:focus{ border-color:rgba(117,100,255,.55); box-shadow:0 0 0 3px rgba(117,100,255,.08); }
+.chat-send-btn{ flex:0 0 48px; width:48px;height:48px; border:0;border-radius:16px; color:white; font-size:23px; background:linear-gradient(135deg,#7564ff,#5143db); box-shadow:0 9px 24px rgba(117,100,255,.25); cursor:pointer; }
+.chat-send-btn:active,.chat-photo-btn:active{transform:scale(.96)}
+.chat-send-btn:disabled,.chat-photo-btn:disabled{opacity:.55}
+
+/* Link panel */
+.chat-link-panel{ display:none; flex:0 0 auto; align-items:center; gap:8px; padding:8px 18px; background:#0e1b2e; border-top:1px solid var(--line); }
+.chat-link-panel.show{display:flex}
+.chat-link-input-user{ flex:1; min-width:0; height:38px; padding:0 12px; border-radius:12px; border:1px solid var(--line); background:#101e32; color:#f4f7fb; font-size:12px; outline:none; }
+.chat-link-input-user::placeholder{color:#71829a}
+#chatLinkToggleBtn{font-size:26px;line-height:1;font-weight:300}
+
+/* Music panel */
+#userMusicPanel input, #userMusicPanel button { font-family:inherit; }
+
+/* Desktop */
+@media(min-width:700px){
+  body{padding:0}
+  #chatApp{ width:min(100%,700px); margin:0 auto; border-left:1px solid var(--line); border-right:1px solid var(--line); box-shadow:0 0 70px rgba(0,0,0,.28); }
+  .chat-bubble{max-width:68%}
+  .chat-menu{ right: calc(50% - 350px + 16px); }
+}
+@media(max-width:600px){
+  #chatApp>.header{ flex-basis:76px; height:76px; padding:8px 13px; }
+  .header-left{ gap:7px; }
+  .header-left:before{ width:28px; font-size:35px; }
+  .header-left h2:after{ font-size:18px; }
+  .header-left small{ font-size:10px; margin-top:4px; }
+  .icon-btn,.menu-trigger{ width:38px;height:38px;border-radius:12px; }
+  .notify-btn{ padding:0 10px; font-size:12px; }
+  .chat-messages{ padding:12px 12px 10px; }
+  .chat-bubble{ max-width:80%; padding:8px 10px 6px; font-size:14px; }
+  .chat-input-bar{ min-height:65px; padding:8px 12px 9px; gap:8px; }
+  .chat-photo-btn,.chat-send-btn{ width:46px;height:46px;flex-basis:46px;border-radius:15px; }
+}
 </style>
 </head>
 <body>
-<div id="chatApp">
-  <div class="header">
-    <div class="header-left"><div class="back">‹</div><div class="logo">SK</div><div><h2>SK Education</h2><div class="sub" id="presence">Online</div></div></div>
-    <div class="menu"><button onclick="toggleMenu()">⋮</button><div id="drop" class="dropdown"><button onclick="logout()">🚪 Logout</button></div></div>
-  </div>
-  <div id="typing"></div>
-  <div id="messages" class="messages"><div class="empty">Chat loading...</div></div>
-  <form id="composer" class="composer"><input id="msg" maxlength="2000" autocomplete="off" placeholder="Message likhein..."><button class="send" type="submit">➤</button></form>
+
+<!-- ===== CLOSED SCREEN ===== -->
+<div id="closedScreen" style="display:none;">
+    <div class="lock-container">
+        <div class="lock-icon">🚫</div>
+        <h2>Chat Closed</h2>
+        <p>Abhi ye chat admin ne band kar rakha hai. Thodi der baad phir try karein.</p>
+        <a href="home.html" class="lock-back-link">← Wapas Home jaayein</a>
+    </div>
 </div>
+
+<!-- ===== LOCK SCREEN ===== -->
+<div id="lockScreen">
+    <div class="lock-container">
+        <div class="lock-icon">🔒</div>
+        <h2>Protected Chat</h2>
+        <p>Ye chat sirf password se khulti hai</p>
+        <form id="unlockForm">
+            <input type="password" id="unlockPassword" placeholder="Password daalein" required autocomplete="off">
+            <button type="submit" class="lock-btn">🔓 Unlock</button>
+            <div id="unlockError" class="lock-error">❌ Galat password!</div>
+        </form>
+        <a href="home.html" class="lock-back-link">← Wapas Home jaayein</a>
+    </div>
+</div>
+
+<!-- ===== CHAT APP ===== -->
+<div id="chatApp">
+    <div class="header">
+        <div class="header-left">
+            <div>
+                <h2></h2>
+                <small id="headerSub">Chat with Owner</small>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="home.html" class="icon-btn">🏠</a>
+            <button type="button" class="notify-btn" id="notifyBtn" onclick="notifyOwner()">🔔 Notify</button>
+            <button type="button" class="menu-trigger" id="chatMenuBtn" onclick="toggleChatMenu(event)" aria-label="More options"></button>
+            <div class="chat-menu" id="chatMenu">
+                <button type="button" onclick="closeChatMenu(); toggleUserMusicPanel();">🎵 Listen Together</button>
+                <button type="button" onclick="closeChatMenu(); logout();">🚪 Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MUSIC PANEL -->
+    <div id="userMusicPanel" style="display:none;padding:12px 16px;background:rgba(76,201,240,0.08);border-bottom:1px solid var(--line);flex-shrink:0;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <input type="url" id="userMusicUrl" placeholder="Paste a song/audio URL" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:#101e32;color:white;font-size:13px;">
+            <button type="button" id="userMusicSendBtn" style="background:linear-gradient(90deg,var(--mine),var(--accent));color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;">🎧 Request to Play Together</button>
+        </div>
+        <div style="color:var(--muted);font-size:11px;margin-top:6px;">Owner ko allow karna hoga, tabhi song dono taraf bajega.</div>
+    </div>
+    <div id="userMusicBar" style="display:none;padding:12px 16px;background:rgba(93,75,233,0.18);border-bottom:1px solid var(--line);flex-shrink:0;align-items:center;gap:12px;"></div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-loading"><div class="spinner"></div></div>
+    </div>
+
+    <div class="reply-preview-bar" id="replyPreviewBar">
+        <div class="reply-preview-text" id="replyPreviewText"></div>
+        <button class="reply-preview-cancel" id="replyPreviewCancel">✕</button>
+    </div>
+
+    <div id="deleteConfirmOverlay">
+        <div class="delete-confirm-box">
+            <div class="dc-icon">🗑️</div>
+            <h3>Delete Message?</h3>
+            <p>Ye message hamesha ke liye delete ho jayega.</p>
+            <div class="dc-actions">
+                <button type="button" class="dc-cancel" id="dcCancelBtn">Cancel</button>
+                <button type="button" class="dc-confirm" id="dcConfirmBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-link-panel" id="chatLinkPanel">
+        <input type="text" id="chatLinkTitle" placeholder="🔗 Link title" class="chat-link-input-user">
+        <input type="url" id="chatLinkUrl" placeholder="🔗 Link URL" class="chat-link-input-user">
+        <button type="button" class="reply-preview-cancel" id="chatLinkPanelClose">✕</button>
+    </div>
+
+    <div class="chat-input-bar">
+        <button class="chat-photo-btn" id="photoBtn" title="Send photo">📷</button>
+        <input type="file" id="photoInput" accept="image/*" style="display:none;">
+        <button type="button" class="chat-photo-btn" id="chatLinkToggleBtn" title="Add link">+</button>
+        <input type="text" id="chatTextInput" placeholder="Type a message...">
+        <button class="chat-send-btn" id="chatSendBtn">➤</button>
+    </div>
+</div>
+
 <script>
-const name=getUserName();
-if(!name) location.replace("login.html");
-const uid=getUserId();
-const chatRef=db.ref("chats/"+uid);
-const messagesRef=chatRef.child("messages");
-const typingRef=chatRef.child("typing");
-document.getElementById("presence").textContent="Online • "+name;
+// ========================================
+// CHECK LOGIN
+// ========================================
+const userName = getUserName();
+if (!userName) {
+    window.location.href = 'index.html';
+} else {
 
-function esc(s){const d=document.createElement("div");d.textContent=s??"";return d.innerHTML}
-function time(v){const d=new Date(v||Date.now());return d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}
+watchBlockedStatus();
 
-messagesRef.on("value", snap=>{
-  const box=document.getElementById("messages"), data=snap.val()||{};
-  const arr=Object.entries(data).sort((a,b)=>(a[1].timestamp||0)-(b[1].timestamp||0));
-  box.innerHTML=arr.length?arr.map(([k,m])=>{
-    const cls=m.sender==="admin"?"admin":"user";
-    return `<div class="row ${cls}"><div class="bubble">${esc(m.message)}<div class="time">${time(m.timestamp)}</div></div></div>`;
-  }).join(""):`<div class="empty">💬 Abhi koi message nahi hai.<br>Yahin se chat start karein.</div>`;
-  box.scrollTop=box.scrollHeight;
-});
-
-function showTyping(on){
-  const el=document.getElementById("typing");
-  el.textContent=on?"Admin is typing...":"";
-  el.classList.toggle("show",on);
+function notifyOwner() {
+    const btn = document.getElementById('notifyBtn');
+    btn.disabled = true;
+    const old = btn.innerHTML;
+    btn.textContent = '⏳ Sending...';
+    sendNotifyOwnerNotification(userName).then(function () {
+        btn.textContent = '✅ Notified';
+        setTimeout(function () { btn.innerHTML = old; btn.disabled = false; }, 1800);
+    }).catch(function (err) {
+        console.error('Notify failed:', err);
+        btn.textContent = '❌ Try Again';
+        setTimeout(function () { btn.innerHTML = old; btn.disabled = false; }, 1800);
+    });
 }
-typingRef.child("admin").on("value",s=>showTyping(s.val()===true));
+window.notifyOwner = notifyOwner;
 
-let typingTimer=null;
-function setTyping(){
-  typingRef.child("user").set(true).catch(()=>{});
-  clearTimeout(typingTimer);
-  typingTimer=setTimeout(()=>typingRef.child("user").set(false).catch(()=>{}),1400);
+// ========================================
+// PASSWORD LOCK
+// ========================================
+function formatLockRemaining(ms) {
+    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+    const min = Math.floor(totalSec / 60);
+    const sec = totalSec % 60;
+    return min + ':' + (sec < 10 ? '0' : '') + sec;
 }
-document.getElementById("msg").addEventListener("input",()=>{
-  if(document.getElementById("msg").value.trim()) setTyping();
-  else typingRef.child("user").set(false).catch(()=>{});
-});
-window.addEventListener("beforeunload",()=>typingRef.child("user").set(false));
 
-document.getElementById("composer").addEventListener("submit",async e=>{
-  e.preventDefault();
-  const input=document.getElementById("msg"), text=input.value.trim();
-  if(!text) return;
-  input.disabled=true;
-  typingRef.child("user").set(false).catch(()=>{});
-  const data={sender:"user",user_id:uid,user_name:name,message:text,timestamp:Date.now()};
-  try{
-    await chatRef.child("user_name").set(name);
-    const newRef=messagesRef.push();
-    await newRef.set(data);
-    // Telegram is triggered ONLY for an actual user message, never for login.
-    notifyNewUserMessage(name,text).catch(err=>console.error("Telegram:",err));
-    input.value="";
-  }catch(err){alert("Message send nahi hua. Firebase Rules check karein.");console.error(err)}
-  finally{input.disabled=false;input.focus();}
+let lockCountdownTimer = null;
+function showLockedOutMessage(lockedUntil) {
+    const errorDiv = document.getElementById('unlockError');
+    const form = document.getElementById('unlockForm');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const input = document.getElementById('unlockPassword');
+    input.disabled = true;
+    submitBtn.disabled = true;
+    errorDiv.style.display = 'block';
+    clearInterval(lockCountdownTimer);
+    function tick() {
+        const remaining = lockedUntil - Date.now();
+        if (remaining <= 0) {
+            clearInterval(lockCountdownTimer);
+            errorDiv.style.display = 'none';
+            input.disabled = false;
+            submitBtn.disabled = false;
+            input.value = '';
+            input.focus();
+            return;
+        }
+        errorDiv.textContent = '🔒 3 galat password ke baad 5 minute ka lock laga hai. ' + formatLockRemaining(remaining) + ' baad phir try karein.';
+    }
+    tick();
+    lockCountdownTimer = setInterval(tick, 1000);
+}
+
+function initLockScreen() {
+    document.getElementById('unlockForm').querySelector('button[type="submit"]').disabled = true;
+    loadChatClosed().then(function (closed) {
+        if (closed) {
+            document.getElementById('lockScreen').style.display = 'none';
+            document.getElementById('closedScreen').style.display = 'flex';
+            return;
+        }
+        document.getElementById('lockScreen').style.display = 'flex';
+        return getPasswordLockStatus().then(function (status) {
+            document.getElementById('unlockForm').querySelector('button[type="submit"]').disabled = false;
+            if (status.lockedUntil && status.lockedUntil > Date.now()) {
+                showLockedOutMessage(status.lockedUntil);
+            }
+        });
+    }).catch(function (err) {
+        console.error('Lock-screen init failed:', err);
+        document.getElementById('lockScreen').style.display = 'flex';
+        document.getElementById('unlockForm').querySelector('button[type="submit"]').disabled = false;
+    });
+}
+initLockScreen();
+
+document.getElementById('unlockForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const input = document.getElementById('unlockPassword');
+    const entered = input.value.trim();
+    const errorDiv = document.getElementById('unlockError');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (!entered) { input.focus(); return; }
+
+    errorDiv.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Checking...';
+
+    getPasswordLockStatus().then(function (status) {
+        if (status.lockedUntil && status.lockedUntil > Date.now()) {
+            throw new Error('LOCKED_OUT:' + status.lockedUntil);
+        }
+        return loadChatPassword();
+    }).then(function (correctPassword) {
+        if (entered === String(correctPassword)) {
+            return clearPasswordLock().then(function () {
+                document.getElementById('lockScreen').style.display = 'none';
+                document.getElementById('chatApp').style.display = 'flex';
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔓 Unlock';
+                initChat();
+                sendChatOpenNotification(userName).catch(function (err) {
+                    console.error('Chat-open notification failed:', err);
+                });
+            });
+        } else {
+            throw new Error('WRONG_PASSWORD');
+        }
+    }).catch(function (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🔓 Unlock';
+        input.value = '';
+        if (err && err.message && err.message.indexOf('LOCKED_OUT:') === 0) {
+            showLockedOutMessage(Number(err.message.split(':')[1]));
+            return;
+        }
+        if (err && err.message === 'WRONG_PASSWORD') {
+            recordFailedPasswordAttempt().then(function (status) {
+                if (status.lockedUntil) {
+                    showLockedOutMessage(status.lockedUntil);
+                } else {
+                    const attemptsLeft = 3 - status.failCount;
+                    errorDiv.textContent = '❌ Galat password! (' + attemptsLeft + ' attempt' + (attemptsLeft === 1 ? '' : 's') + ' left)';
+                    errorDiv.style.display = 'block';
+                    input.focus();
+                }
+            }).catch(function () {
+                errorDiv.textContent = '❌ Galat password!';
+                errorDiv.style.display = 'block';
+                input.focus();
+            });
+        } else {
+            errorDiv.textContent = '⚠️ Password check nahi ho paaya. Internet check karein.';
+            errorDiv.style.display = 'block';
+            input.focus();
+        }
+    });
 });
 
-function toggleMenu(){document.getElementById("drop").classList.toggle("open")}
-function logout(){typingRef.child("user").set(false).catch(()=>{});clearUser();location.replace("login.html")}
-document.addEventListener("click",e=>{if(!e.target.closest(".menu"))document.getElementById("drop").classList.remove("open")});
+// ========================================
+// CHAT (unlock hone ke baad hi init hoti hai)
+// ========================================
+function initChat() {
+    const myUserId = getUserId();
+    const chatRef = chatDb.ref('chats/' + myUserId);
+    const messagesContainer = document.getElementById('chatMessages');
+    let replyingTo = null;
+    let renderedKeys = new Set();
+    let adminReadUntil = null;
+    let userReadUntil = null;
+    let messagesLoaded = false;
+    let loadingTimer = null;
+    let adminTypingTimestamp = null;
+    let userTypingTimeout = null;
+    let adminPresenceData = {};
+
+    function formatLastSeen(ts) {
+        const d = new Date(ts);
+        if (isNaN(d.getTime())) return 'recently';
+        const min = Math.floor(Math.max(0, Date.now() - d.getTime()) / 60000);
+        if (min < 1) return 'just now';
+        if (min < 60) return min + ' min ago';
+        const hrs = Math.floor(min / 60);
+        if (hrs < 24) return hrs + ' hr ago';
+        return d.toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    let chatPruned = false;
+    function pruneOldChatMessages(uid, messages) {
+        if (!messages) return;
+        const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+        const updates = {};
+        let hasStale = false;
+        Object.keys(messages).forEach(function (key) {
+            const m = messages[key];
+            if (m && m.timestamp && new Date(m.timestamp).getTime() < cutoff) {
+                updates[key] = null;
+                hasStale = true;
+            }
+        });
+        if (hasStale) chatDb.ref('chats/' + uid + '/messages').update(updates).catch(function () {});
+    }
+
+    function stopLoadingTimer() { if (loadingTimer) { clearTimeout(loadingTimer); loadingTimer = null; } }
+    function showChatLoadFailure() {
+        if (messagesLoaded) return;
+        messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">⚠️</span><p>Messages load nahi ho paaye.<br>Internet connection check karein.</p><button type="button" onclick="location.reload()" style="margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#6958e8;color:#fff;font-weight:700;">Retry</button></div>';
+    }
+
+    chatRef.update({ user_name: userName }).catch(function () {});
+
+    // ========================================
+    // LISTEN TOGETHER — user side (simplified: shared audio URL)
+    // ========================================
+    const userAudioEl = new Audio();
+    userAudioEl.crossOrigin = 'anonymous';
+
+    window.toggleUserMusicPanel = function () {
+        const panel = document.getElementById('userMusicPanel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    };
+
+    function userMusicAction(updates) {
+        chatRef.child('music').update(updates).catch(function (err) { console.error('Music action failed:', err); });
+    }
+
+    document.getElementById('userMusicSendBtn').addEventListener('click', function () {
+        const url = document.getElementById('userMusicUrl').value.trim();
+        if (!url) { showToast('Pehle ek song URL daalein!', 'error'); return; }
+        chatRef.child('music').set({
+            url: url, status: 'requested', requested_by: 'user',
+            admin_allowed: false, user_allowed: true
+        }).then(function () {
+            showToast('🎧 Request bhej di gayi, Owner ke allow karne ka wait karein!');
+            document.getElementById('userMusicUrl').value = '';
+        }).catch(function (err) {
+            console.error('Music request failed:', err);
+            showToast('❌ Request nahi bhej payi.', 'error');
+        });
+    });
+
+    function renderUserMusicBar(music) {
+        const bar = document.getElementById('userMusicBar');
+        if (!music || music.status === 'stopped' || !music.url) {
+            bar.style.display = 'none';
+            if (!userAudioEl.paused) userAudioEl.pause();
+            return;
+        }
+        if (!music.admin_allowed) {
+            bar.style.display = 'flex';
+            bar.innerHTML = '<span style="font-size:20px;">🎵</span><div style="flex:1;font-size:13px;color:var(--muted);">Request bheji gayi hai — Owner ke allow karne ka wait karein…</div>';
+            return;
+        }
+        const isPlaying = music.status === 'playing';
+        bar.style.display = 'flex';
+        bar.innerHTML = `
+            <span style="font-size:20px;">🎵</span>
+            <div style="flex:1;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Listening together</div>
+            <button id="userMusicToggleBtn" style="background:rgba(255,255,255,0.12);color:white;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:13px;">${isPlaying ? '⏸ Pause' : '▶️ Play'}</button>
+            <button id="userMusicStopBtn" style="background:rgba(255,90,120,0.2);color:#ff5a78;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:13px;">⏹ Stop</button>
+        `;
+        document.getElementById('userMusicToggleBtn').onclick = function () {
+            if (isPlaying) {
+                userMusicAction({ status: 'paused', paused_at_seconds: userAudioEl.currentTime || 0 });
+            } else {
+                userMusicAction({ status: 'playing', started_at: new Date(Date.now() - (music.paused_at_seconds || 0) * 1000).toISOString() });
+            }
+        };
+        document.getElementById('userMusicStopBtn').onclick = function () {
+            userMusicAction({ status: 'stopped', admin_allowed: false, user_allowed: false });
+        };
+        syncUserAudio(music);
+    }
+
+    function syncUserAudio(music) {
+        if (!music || (music.status !== 'playing' && music.status !== 'paused')) {
+            if (!userAudioEl.paused) userAudioEl.pause();
+            return;
+        }
+        if (userAudioEl.src !== music.url) userAudioEl.src = music.url;
+        if (music.status === 'paused') {
+            userAudioEl.pause();
+            if (Math.abs(userAudioEl.currentTime - (music.paused_at_seconds || 0)) > 0.75) {
+                userAudioEl.currentTime = music.paused_at_seconds || 0;
+            }
+            return;
+        }
+        const elapsed = (Date.now() - new Date(music.started_at).getTime()) / 1000;
+        if (elapsed >= 0) {
+            if (Math.abs(userAudioEl.currentTime - elapsed) > 1.2) userAudioEl.currentTime = Math.max(0, elapsed);
+            if (userAudioEl.paused) {
+                userAudioEl.play().catch(function () { showToast('🔈 Browser ne autoplay block kiya — play button dabayein', 'error'); });
+            }
+        }
+    }
+
+    chatRef.child('music').on('value', function (snap) { renderUserMusicBar(snap.val()); });
+
+    // ========================================
+    // PRESENCE
+    // ========================================
+    chatDb.ref('.info/connected').on('value', function (snap) {
+        if (snap.val() === false) return;
+        chatRef.onDisconnect().update({ online: false, last_seen: new Date().toISOString() }).then(function () {
+            chatRef.update({ online: true, user_name: userName });
+        });
+    });
+
+    const TYPING_TTL_MS = 3500;
+    function renderHeaderSub() {
+        const el = document.getElementById('headerSub');
+        if (!el) return;
+        const typingRecent = adminTypingTimestamp && (Date.now() - new Date(adminTypingTimestamp).getTime() < TYPING_TTL_MS);
+        if (typingRecent) { el.textContent = '✍️ Typing...'; return; }
+        if (adminPresenceData.online) el.textContent = '🟢 Online';
+        else if (adminPresenceData.last_seen) el.textContent = 'Last seen: ' + formatLastSeen(adminPresenceData.last_seen);
+        else el.textContent = 'Chat with Owner';
+    }
+    setInterval(renderHeaderSub, 1000);
+
+    chatDb.ref('admin_presence').on('value', function (snap) {
+        adminPresenceData = snap.val() || {};
+        renderHeaderSub();
+    });
+
+    chatRef.on('value', function (snap) {
+        const data = snap.val() || {};
+        adminReadUntil = data.admin_read_until || null;
+        userReadUntil = data.user_read_until || null;
+        adminTypingTimestamp = data.admin_typing || null;
+        updateTicks();
+        updateMessageDetails();
+        renderHeaderSub();
+    });
+
+    document.getElementById('chatTextInput').addEventListener('input', function () {
+        chatRef.update({ user_typing: new Date().toISOString() }).catch(function () {});
+        clearTimeout(userTypingTimeout);
+        userTypingTimeout = setTimeout(function () { chatRef.update({ user_typing: null }).catch(function () {}); }, 2500);
+    });
+    chatRef.child('user_typing').onDisconnect().remove();
+
+    // ========================================
+    // MESSAGES
+    // ========================================
+    chatRef.child('messages').on('value', function (snap) {
+        try {
+            const messages = snap.val();
+            messagesLoaded = true;
+            stopLoadingTimer();
+            if (!chatPruned) { chatPruned = true; pruneOldChatMessages(myUserId, messages); }
+            renderMessages(messages);
+            markAdminMessagesSeen(messages);
+        } catch (err) {
+            console.error('Chat render error:', err);
+            messagesLoaded = true;
+            stopLoadingTimer();
+            messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">⚠️</span><p>Messages render nahi ho paaye.<br>Page reload karke try karein.</p><button type="button" onclick="location.reload()" style="margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#6958e8;color:#fff;font-weight:700;">Retry</button></div>';
+        }
+    }, function (err) {
+        console.error('Chat load error:', err);
+        messagesLoaded = true;
+        stopLoadingTimer();
+        messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">⚠️</span><p>Messages load nahi ho paye.<br>Internet check karein.</p><button type="button" onclick="location.reload()" style="margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#6958e8;color:#fff;font-weight:700;">Retry</button></div>';
+    });
+
+    loadingTimer = setTimeout(showChatLoadFailure, 7000);
+
+    function markAdminMessagesSeen(messages) {
+        messages = messages || window.__msgCacheForReply || {};
+        const adminMessages = Object.keys(messages).filter(function (key) {
+            return messages[key] && messages[key].sender === 'admin' && messages[key].timestamp;
+        });
+        if (!adminMessages.length) return;
+        const latestAdminTs = Math.max.apply(null, adminMessages.map(function (key) { return new Date(messages[key].timestamp).getTime(); }));
+        const alreadyRead = userReadUntil ? new Date(userReadUntil).getTime() : 0;
+        if (latestAdminTs <= alreadyRead) { updateMessageDetails(); return; }
+        const seenAt = new Date().toISOString();
+        userReadUntil = seenAt;
+        chatRef.update({ user_read_until: seenAt }).then(updateMessageDetails).catch(function (err) { console.warn('Seen update failed:', err); });
+    }
+    setTimeout(function () { markAdminMessagesSeen(); }, 250);
+
+    function formatMessageDateTime(ts) {
+        return new Date(ts).toLocaleString([], { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    function getSeenTime(m) {
+        if (!m || !m.timestamp) return null;
+        const sent = new Date(m.timestamp).getTime();
+        if (m.sender === 'user' && adminReadUntil) {
+            const read = new Date(adminReadUntil).getTime();
+            if (sent <= read) return formatMessageDateTime(adminReadUntil);
+        }
+        if (m.sender === 'admin' && userReadUntil) {
+            const read = new Date(userReadUntil).getTime();
+            if (sent <= read) return formatMessageDateTime(userReadUntil);
+        }
+        return null;
+    }
+
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
+    function buildBubbleHtml(key, m) {
+        const rowCls = m.sender === 'admin' ? 'from-admin' : 'from-user';
+        const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const quotePreview = m.reply_to ? (m.reply_to.length > 60 ? m.reply_to.slice(0, 60) + '…' : m.reply_to) : null;
+        const seenTime = getSeenTime(m);
+        const isRead = !!seenTime;
+        const tickHtml = m.sender === 'user'
+            ? `<span class="cb-tick${isRead ? ' read' : ''}" data-msgkey="${key}">${isRead ? '✓✓' : '✓'}</span>`
+            : '';
+        const details = `
+            <div class="message-details" data-details-key="${key}">
+                <div>Sent: ${formatMessageDateTime(m.timestamp)}</div>
+                <div class="${seenTime ? 'seen' : 'not-seen'}">${seenTime ? 'Seen: ' + seenTime : 'Not seen yet'}</div>
+            </div>`;
+        const deleteBtn = rowCls === 'from-user'
+            ? `<button class="del-icon-btn" onclick="event.stopPropagation();confirmDeleteMessage('${key}')" title="Delete">🗑️</button>`
+            : '';
+        return `
+            <div class="chat-row ${rowCls}" id="msgrow-${key}">
+                ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setReply('${key}')" title="Reply">❕</button>` : ''}
+                <div class="chat-bubble" onclick="toggleMessageDetails(event, '${key}')">
+                    ${quotePreview ? `<div class="cb-quote">${esc(quotePreview)}</div>` : ''}
+                    <div>${esc(m.text)}</div>
+                    ${m.link_url ? `<div><a href="${esc(m.link_url)}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${esc(m.link_title || 'Open Link')}</a></div>` : ''}
+                    <div class="cb-time">${time}${tickHtml}</div>
+                    ${details}
+                </div>
+                ${rowCls === 'from-user' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setReply('${key}')" title="Reply">❕</button>` : ''}
+                ${deleteBtn}
+            </div>`;
+    }
+
+    function renderMessages(messages) {
+        window.__msgCacheForReply = messages || {};
+        if (!messages) {
+            messagesContainer.innerHTML = '<div class="chat-empty-state"><span class="icon">💬</span><p>Abhi koi message nahi hai.<br>Neeche se message bhejein!</p></div>';
+            renderedKeys.clear();
+            return;
+        }
+        const emptyState = messagesContainer.querySelector('.chat-empty-state, .chat-loading');
+        if (emptyState) messagesContainer.innerHTML = '';
+
+        const keys = Object.keys(messages).sort(function (a, b) { return new Date(messages[a].timestamp) - new Date(messages[b].timestamp); });
+        let appended = false;
+        keys.forEach(function (key) {
+            if (renderedKeys.has(key)) return;
+            renderedKeys.add(key);
+            messagesContainer.insertAdjacentHTML('beforeend', buildBubbleHtml(key, messages[key]));
+            appended = true;
+        });
+        renderedKeys.forEach(function (key) {
+            if (!messages[key]) {
+                const el = document.getElementById('msgrow-' + key);
+                if (el) el.remove();
+                renderedKeys.delete(key);
+            }
+        });
+        if (appended) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        updateMessageDetails();
+    }
+
+    function updateTicks() {
+        const messages = window.__msgCacheForReply;
+        if (!messages) return;
+        Object.keys(messages).forEach(function (key) {
+            const m = messages[key];
+            if (m.sender !== 'user') return;
+            const tickEl = messagesContainer.querySelector('.cb-tick[data-msgkey="' + key + '"]');
+            if (!tickEl) return;
+            const isRead = adminReadUntil && new Date(m.timestamp).getTime() <= new Date(adminReadUntil).getTime();
+            tickEl.textContent = isRead ? '✓✓' : '✓';
+            tickEl.classList.toggle('read', !!isRead);
+        });
+    }
+
+    window.toggleMessageDetails = function (event, key) {
+        if (event) event.stopPropagation();
+        const bubble = document.querySelector('#msgrow-' + key + ' .chat-bubble');
+        if (!bubble) return;
+        document.querySelectorAll('.chat-bubble.details-open').forEach(function (el) { if (el !== bubble) el.classList.remove('details-open'); });
+        bubble.classList.toggle('details-open');
+    };
+
+    function updateMessageDetails() {
+        const messages = window.__msgCacheForReply || {};
+        Object.keys(messages).forEach(function (key) {
+            const info = messagesContainer.querySelector('.message-details[data-details-key="' + key + '"]');
+            if (!info) return;
+            const seenTime = getSeenTime(messages[key]);
+            info.innerHTML = '<div>Sent: ' + formatMessageDateTime(messages[key].timestamp) + '</div>' +
+                '<div class="' + (seenTime ? 'seen' : 'not-seen') + '">' + (seenTime ? 'Seen: ' + seenTime : 'Not seen yet') + '</div>';
+        });
+    }
+
+    window.setReply = function (key) {
+        const messages = window.__msgCacheForReply;
+        if (!messages || !messages[key]) return;
+        const m = messages[key];
+        replyingTo = m.text;
+        const preview = m.text.length > 70 ? m.text.slice(0, 70) + '…' : m.text;
+        document.getElementById('replyPreviewText').textContent = '↩️ ' + preview;
+        document.getElementById('replyPreviewBar').classList.add('show');
+        document.getElementById('chatTextInput').focus();
+    };
+
+    document.getElementById('replyPreviewCancel').addEventListener('click', function () {
+        replyingTo = null;
+        document.getElementById('replyPreviewBar').classList.remove('show');
+    });
+
+    // ========================================
+    // DELETE MESSAGE (apna hi bheja hua)
+    // ========================================
+    let pendingDeleteKey = null;
+    const deleteOverlay = document.getElementById('deleteConfirmOverlay');
+
+    window.confirmDeleteMessage = function (key) {
+        pendingDeleteKey = key;
+        deleteOverlay.classList.add('show');
+    };
+    document.getElementById('dcCancelBtn').addEventListener('click', function () {
+        pendingDeleteKey = null;
+        deleteOverlay.classList.remove('show');
+    });
+    deleteOverlay.addEventListener('click', function (e) {
+        if (e.target === deleteOverlay) { pendingDeleteKey = null; deleteOverlay.classList.remove('show'); }
+    });
+    document.getElementById('dcConfirmBtn').addEventListener('click', function () {
+        const key = pendingDeleteKey;
+        if (!key) return;
+        deleteOverlay.classList.remove('show');
+        pendingDeleteKey = null;
+        const row = document.getElementById('msgrow-' + key);
+        if (row) { row.style.opacity = '0.4'; row.style.pointerEvents = 'none'; }
+        chatRef.child('messages').child(key).remove().then(function () {
+            showToast('🗑️ Message delete ho gaya');
+        }).catch(function (err) {
+            console.error('Delete failed:', err);
+            showToast('❌ Delete nahi ho paya, phir try karein.', 'error');
+            if (row) { row.style.opacity = '1'; row.style.pointerEvents = 'auto'; }
+        });
+    });
+
+    // ========================================
+    // LINK PANEL
+    // ========================================
+    document.getElementById('chatLinkToggleBtn').addEventListener('click', function () {
+        document.getElementById('chatLinkPanel').classList.toggle('show');
+    });
+    document.getElementById('chatLinkPanelClose').addEventListener('click', function () {
+        document.getElementById('chatLinkTitle').value = '';
+        document.getElementById('chatLinkUrl').value = '';
+        document.getElementById('chatLinkPanel').classList.remove('show');
+    });
+
+    // ========================================
+    // SEND TEXT MESSAGE
+    // ========================================
+    function sendChatMessage() {
+        const input = document.getElementById('chatTextInput');
+        const text = input.value.trim();
+        const linkTitleInput = document.getElementById('chatLinkTitle');
+        const linkUrlInput = document.getElementById('chatLinkUrl');
+        const linkTitle = linkTitleInput.value.trim();
+        const linkUrl = linkUrlInput.value.trim();
+
+        if (!text) return;
+        if ((linkTitle && !linkUrl) || (!linkTitle && linkUrl)) {
+            showToast('Link ke liye Title aur URL dono bharein!', 'error');
+            return;
+        }
+
+        const sendBtn = document.getElementById('chatSendBtn');
+        sendBtn.disabled = true;
+        input.value = '';
+
+        const msgData = { sender: 'user', text: text, timestamp: new Date().toISOString() };
+        if (linkTitle && linkUrl) { msgData.link_title = linkTitle; msgData.link_url = linkUrl; }
+        if (replyingTo) {
+            msgData.reply_to = replyingTo;
+            replyingTo = null;
+            document.getElementById('replyPreviewBar').classList.remove('show');
+        }
+
+        clearTimeout(userTypingTimeout);
+        chatRef.update({ user_typing: null }).catch(function () {});
+
+        chatRef.child('messages').push(msgData).then(function () {
+            return chatRef.update({ user_name: userName, last_message: text, last_sender: 'user', last_timestamp: msgData.timestamp });
+        }).then(function () {
+            sendBtn.disabled = false;
+            linkTitleInput.value = '';
+            linkUrlInput.value = '';
+            document.getElementById('chatLinkPanel').classList.remove('show');
+            showToast('✅ Message sent!');
+            sendTelegramMessage(userName, text, msgData.reply_to || null).catch(function (err) { console.error('Telegram notification failed:', err); });
+        }).catch(function (err) {
+            console.error('Firebase message send failed:', err);
+            sendBtn.disabled = false;
+            showToast('❌ Message save nahi ho paya, phir try karein.', 'error');
+        });
+    }
+
+    document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+    document.getElementById('chatTextInput').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendChatMessage(); });
+
+    // ========================================
+    // SEND PHOTO (Telegram + chat bubble)
+    // ========================================
+    document.getElementById('photoBtn').addEventListener('click', function () {
+        document.getElementById('photoInput').click();
+    });
+
+    document.getElementById('photoInput').addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+            showToast('Photo 10MB se choti honi chahiye!', 'error');
+            this.value = '';
+            return;
+        }
+
+        const photoBtn = document.getElementById('photoBtn');
+        photoBtn.textContent = '⏳';
+        photoBtn.disabled = true;
+
+        const caption = `📩 New Photo - SK Chat\n\n👤 From: ${userName}`;
+        const msgData = { sender: 'user', text: '📷 Photo bheji gayi', timestamp: new Date().toISOString() };
+        const firebaseSave = chatRef.child('messages').push(msgData).then(function () {
+            return chatRef.update({ user_name: userName, last_message: '📷 Photo', last_sender: 'user', last_timestamp: msgData.timestamp });
+        });
+        const telegramSave = sendTelegramPhoto(caption, file);
+
+        Promise.allSettled([firebaseSave, telegramSave]).then(function (results) {
+            const firebaseOk = results[0].status === 'fulfilled';
+            const telegramOk = results[1].status === 'fulfilled';
+            if (firebaseOk && telegramOk) showToast('✅ Photo bhej di gayi!');
+            else if (firebaseOk) showToast('✅ Photo chat mein save ho gayi. Telegram notification nahi ja payi.', 'error');
+            else showToast('❌ Photo chat mein save nahi ho payi.', 'error');
+            if (!telegramOk) console.error('Photo Telegram send failed:', results[1].reason);
+            if (!firebaseOk) console.error('Photo Firebase save failed:', results[0].reason);
+        }).finally(function () {
+            photoBtn.textContent = '📷';
+            photoBtn.disabled = false;
+            document.getElementById('photoInput').value = '';
+        });
+    });
+}
+
+// ========================================
+// MAINTENANCE CHECK
+// ========================================
+chatDb.ref('settings/maintenance').on('value', function (snap) {
+    if (snap.val() === 'on') {
+        document.body.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#07111f;color:white;text-align:center;font-family:Arial;padding:20px;">
+                <div style="padding:50px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:500px;">
+                    <div style="font-size:80px;margin-bottom:20px;">🔒</div>
+                    <h1 style="font-size:36px;">Chat Closed</h1>
+                    <p style="color:#a5b4fc;">We're updating our content. Please check back soon!</p>
+                </div>
+            </div>`;
+    }
+});
+
+function toggleChatMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('chatMenu');
+    if (menu) menu.classList.toggle('open');
+}
+function closeChatMenu() {
+    const menu = document.getElementById('chatMenu');
+    if (menu) menu.classList.remove('open');
+}
+document.addEventListener('click', function (event) {
+    const menu = document.getElementById('chatMenu');
+    const btn = document.getElementById('chatMenuBtn');
+    if (menu && !menu.contains(event.target) && event.target !== btn) menu.classList.remove('open');
+});
+
+function logout() {
+    chatDb.ref('chats/' + getUserId()).update({ online: false, last_seen: new Date().toISOString() }).catch(function () {}).finally(function () {
+        clearUserName();
+        window.location.href = 'home.html';
+    });
+}
+window.logout = logout;
+
+} // end else (logged in)
 </script>
 </body>
 </html>

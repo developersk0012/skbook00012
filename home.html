@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SK Chat</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="config.js"></script>
+<style>
+:root{
+    --bg1:#070716; --bg2:#120b2e; --bg3:#1c1147;
+    --accent1:#4cc9f0; --accent2:#f72585; --accent3:#7b5cff;
+    --glass: rgba(255,255,255,0.045);
+    --glass-border: rgba(255,255,255,0.08);
+    --muted:#98a3c9;
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+html,body{ height:100%; }
+body {
+    background: var(--bg1);
+    min-height:100vh; color:white; position:relative; overflow-x:hidden;
+    background-image:
+        radial-gradient(circle at 15% 20%, rgba(76,201,240,0.08), transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(123,92,255,0.10), transparent 40%),
+        linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+    background-attachment: fixed;
+}
+.main-container { max-width:720px; margin:0 auto; padding:22px 25px 50px; }
+
+.header {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 26px; background:var(--glass); backdrop-filter:blur(16px) saturate(140%);
+    border-radius:20px; border:1px solid var(--glass-border);
+    margin-bottom:26px; flex-wrap:wrap; gap:12px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.25);
+}
+.header-left { display:flex; align-items:center; gap:15px; }
+.logo-icon { width:48px; height:48px; border-radius:16px; background:linear-gradient(135deg, var(--accent3), var(--accent2)); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:22px; color:white; box-shadow:0 6px 20px rgba(123,92,255,0.4); }
+.header-left h2 { font-size:20px; color:white; margin:0; font-weight:700; }
+.header-left small { color:var(--muted); font-size:13px; display:block; }
+.header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.user-badge { background:rgba(123,92,255,0.16); padding:7px 18px; border-radius:50px; font-size:14px; color:#c9d0ff; border:1px solid rgba(123,92,255,0.25); font-weight:600; }
+.logout-link { background:rgba(247,37,133,0.08); border:1px solid rgba(247,37,133,0.15); color:#ff6b9d; font-size:13px; font-weight:600; cursor:pointer; padding:9px 16px; border-radius:50px; transition:all .25s; }
+.logout-link:hover { background:rgba(247,37,133,0.2); }
+
+.greeting-line{ margin:4px 0 26px; color:var(--muted); font-size:15px; }
+.greeting-line b{ color:#e8ecff; }
+
+/* Chat tile - same visual idea as the "Announcement" box */
+.chat-tile {
+    display:block; text-decoration:none; color:white;
+    background: var(--glass); backdrop-filter:blur(10px);
+    border-radius:24px; border:1px solid var(--glass-border);
+    padding:34px 28px; position:relative; overflow:hidden;
+    transition: all .4s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+}
+.chat-tile:hover { transform:translateY(-6px); box-shadow:0 28px 65px rgba(0,0,0,0.45); border-color:rgba(123,92,255,0.4); }
+.chat-tile .icon-wrap { width:74px; height:74px; border-radius:22px; background:linear-gradient(135deg, var(--accent3), var(--accent1)); display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:18px; box-shadow:0 10px 26px rgba(76,201,240,0.3); position:relative; }
+.ann-new-dot{ position:absolute; top:-4px; right:-4px; width:16px; height:16px; border-radius:50%; background:#f72585; box-shadow:0 0 0 3px rgba(7,7,22,0.9); animation:pulseDot 1.6s infinite; }
+@keyframes pulseDot{ 0%,100%{ transform:scale(1); opacity:1;} 50%{ transform:scale(1.3); opacity:.6;} }
+.chat-tile h3 { font-size:22px; font-weight:800; margin-bottom:6px; }
+.chat-tile p { color:var(--muted); font-size:14.5px; margin-bottom:14px; }
+.chat-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(123,92,255,0.18); padding:6px 16px; border-radius:50px; font-size:13px; color:#c9d0ff; border:1px solid rgba(123,92,255,.25); font-weight:600; }
+.online-pill { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; color:#54e5c2; margin-top:14px; font-weight:600; }
+.online-pill .dot { width:8px; height:8px; border-radius:50%; background:#54e5c2; box-shadow:0 0 8px #54e5c2; }
+
+.loading-note { text-align:center; padding:30px; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="main-container">
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-icon">SK</div>
+            <div>
+                <h2>SK Chat</h2>
+                <small>Owner se seedha baat karein</small>
+            </div>
+        </div>
+        <div class="header-right">
+            <span class="user-badge" id="userDisplay">👋 User</span>
+            <button onclick="logout()" class="logout-link">Logout</button>
+        </div>
+    </div>
+
+    <div class="greeting-line">Welcome, <b id="greetName">User</b> 👋 — neeche diye box par tap karke chat shuru karein.</div>
+
+    <a href="chat.html" class="chat-tile">
+        <div class="icon-wrap">📣<span class="ann-new-dot" id="newDot" style="display:none;"></span></div>
+        <h3>Message Owner <span id="msgCount" style="color:var(--muted);font-size:14px;font-weight:600;"></span></h3>
+        <p>Password daal ke seedha Owner se chat karein — text, photo, sab kuch.</p>
+        <span class="chat-badge">🔔 Tap to Open</span>
+        <div class="online-pill" id="ownerOnlinePill" style="display:none;"><span class="dot"></span> Owner Online</div>
+    </a>
+</div>
+
+<script>
+const userName = getUserName();
+if (!userName) {
+    window.location.href = 'index.html';
+} else {
+    document.getElementById('userDisplay').textContent = '👋 ' + userName;
+    document.getElementById('greetName').textContent = userName;
+    watchBlockedStatus();
+
+    // Owner presence dot
+    chatDb.ref('admin_presence').on('value', function (snap) {
+        const data = snap.val() || {};
+        document.getElementById('ownerOnlinePill').style.display = data.online ? 'inline-flex' : 'none';
+    });
+
+    // Total message count + "new" pulsing dot if last message came recently
+    const myUserId = getUserId();
+    chatDb.ref('chats/' + myUserId + '/messages').once('value').then(function (snap) {
+        const data = snap.val();
+        if (!data) return;
+        const keys = Object.keys(data);
+        document.getElementById('msgCount').textContent = '(' + keys.length + ')';
+
+        const timestamps = keys.map(function (k) { return new Date(data[k].timestamp).getTime(); }).filter(function (t) { return !isNaN(t); });
+        if (timestamps.length) {
+            const latest = Math.max.apply(null, timestamps);
+            const latestMsg = keys.find(function(k){ return new Date(data[k].timestamp).getTime() === latest; });
+            const hoursSince = (Date.now() - latest) / (1000 * 60 * 60);
+            if (hoursSince <= 48 && data[latestMsg] && data[latestMsg].sender === 'admin') {
+                document.getElementById('newDot').style.display = 'block';
+            }
+        }
+    }).catch(function (err) { console.error('Message count load failed:', err); });
+
+    // Maintenance check
+    chatDb.ref('settings/maintenance').on('value', function (snap) {
+        if (snap.val() === 'on') {
+            document.body.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:white;text-align:center;font-family:Arial;padding:20px;">
+                    <div style="padding:50px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);max-width:500px;">
+                        <div style="font-size:80px;margin-bottom:20px;">🔧</div>
+                        <h1 style="font-size:36px;">Under Maintenance</h1>
+                        <p style="color:#a5b4fc;">We're updating. Please check back soon!</p>
+                    </div>
+                </div>`;
+        }
+    });
+
+    function logout() {
+        clearUserName();
+        window.location.href = 'index.html';
+    }
+    window.logout = logout;
+}
+</script>
+</body>
+</html>
