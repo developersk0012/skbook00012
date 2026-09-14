@@ -307,27 +307,57 @@ function showLockedOutMessage(lockedUntil) {
 }
 
 function initLockScreen() {
-    document.getElementById('unlockForm').querySelector('button[type="submit"]').disabled = true;
+    const submitBtn = document.getElementById('unlockForm').querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    // Safety net: chaahe Firebase kitna bhi slow ho, 6 second ke baad button
+    // hamesha enable ho jayega taaki user kabhi permanently atka na rahe.
+    let unlocked = false;
+    const safetyTimer = setTimeout(function () {
+        if (unlocked) return;
+        unlocked = true;
+        submitBtn.disabled = false;
+    }, 6000);
+    function finish() {
+        if (unlocked) return;
+        unlocked = true;
+        clearTimeout(safetyTimer);
+        submitBtn.disabled = false;
+    }
+
     loadChatClosed().then(function (closed) {
         if (closed) {
+            finish();
             document.getElementById('lockScreen').style.display = 'none';
             document.getElementById('closedScreen').style.display = 'flex';
             return;
         }
         document.getElementById('lockScreen').style.display = 'flex';
         return getPasswordLockStatus().then(function (status) {
-            document.getElementById('unlockForm').querySelector('button[type="submit"]').disabled = false;
+            finish();
             if (status.lockedUntil && status.lockedUntil > Date.now()) {
                 showLockedOutMessage(status.lockedUntil);
             }
         });
     }).catch(function (err) {
-        console.error('Lock-screen init failed:', err);
+        console.error('Lock-screen init failed (non-blocking):', err);
         document.getElementById('lockScreen').style.display = 'flex';
-        document.getElementById('unlockForm').querySelector('button[type="submit"]').disabled = false;
+        finish();
     });
 }
 initLockScreen();
+
+function openChatApp() {
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('chatApp').style.display = 'flex';
+    initChat();
+    // Ye sab background mein best-effort hain — inka fail hona chat khulne
+    // se kabhi rokna nahi chahiye, isliye yahan sirf fire-and-forget hain.
+    clearPasswordLock().catch(function () {});
+    sendChatOpenNotification(userName).catch(function (err) {
+        console.error('Chat-open notification failed (non-blocking):', err);
+    });
+}
 
 document.getElementById('unlockForm').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -342,54 +372,83 @@ document.getElementById('unlockForm').addEventListener('submit', function (e) {
     submitBtn.disabled = true;
     submitBtn.textContent = '⏳ Checking...';
 
-    getPasswordLockStatus().then(function (status) {
-        if (status.lockedUntil && status.lockedUntil > Date.now()) {
-            throw new Error('LOCKED_OUT:' + status.lockedUntil);
-        }
-        return loadChatPassword();
-    }).then(function (correctPassword) {
-        if (entered === String(correctPassword)) {
-            return clearPasswordLock().then(function () {
-                document.getElementById('lockScreen').style.display = 'none';
-                document.getElementById('chatApp').style.display = 'flex';
-                submitBtn.disabled = false;
-                submitBtn.textContent = '🔓 Unlock';
-                initChat();
-                sendChatOpenNotification(userName).catch(function (err) {
-                    console.error('Chat-open notification failed:', err);
-                });
-            });
-        } else {
-            throw new Error('WRONG_PASSWORD');
-        }
-    }).catch(function (err) {
+    // Safety net: agar kisi wajah se (dheemi/atki hui request) 8 second mein
+    // koi response nahi aata, to button ko hamesha ke liye stuck mat hone do.
+    let settled = false;
+    const safetyTimer = setTimeout(function () {
+        if (settled) return;
+        settled = true;
         submitBtn.disabled = false;
         submitBtn.textContent = '🔓 Unlock';
-        input.value = '';
-        if (err && err.message && err.message.indexOf('LOCKED_OUT:') === 0) {
-            showLockedOutMessage(Number(err.message.split(':')[1]));
+        errorDiv.textContent = '⚠️ Response mein zyada time lag raha hai. Internet check karke phir try karein.';
+        errorDiv.style.display = 'block';
+    }, 8000);
+    function settle(fn) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(safetyTimer);
+        fn();
+    }
+
+    // Lock-status aur password dono ek saath fetch karo — dono calls ab
+    // khud hi fail-safe hain (config.js mein .catch ke saath), isliye ye
+    // Promise.all kabhi bhi silently "reject" hoke atkega nahi.
+    Promise.all([getPasswordLockStatus(), loadChatPassword()]).then(function (results) {
+        const status = results[0];
+        const correctPassword = results[1];
+
+        if (status.lockedUntil && status.lockedUntil > Date.now()) {
+            settle(function () {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔓 Unlock';
+                input.value = '';
+                showLockedOutMessage(status.lockedUntil);
+            });
             return;
         }
-        if (err && err.message === 'WRONG_PASSWORD') {
-            recordFailedPasswordAttempt().then(function (status) {
-                if (status.lockedUntil) {
-                    showLockedOutMessage(status.lockedUntil);
-                } else {
-                    const attemptsLeft = 3 - status.failCount;
-                    errorDiv.textContent = '❌ Galat password! (' + attemptsLeft + ' attempt' + (attemptsLeft === 1 ? '' : 's') + ' left)';
-                    errorDiv.style.display = 'block';
-                    input.focus();
-                }
-            }).catch(function () {
-                errorDiv.textContent = '❌ Galat password!';
-                errorDiv.style.display = 'block';
-                input.focus();
+
+        if (entered === String(correctPassword)) {
+            settle(function () {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🔓 Unlock';
+                openChatApp();
             });
         } else {
-            errorDiv.textContent = '⚠️ Password check nahi ho paaya. Internet check karein.';
-            errorDiv.style.display = 'block';
-            input.focus();
+            recordFailedPasswordAttempt().then(function (newStatus) {
+                settle(function () {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '🔓 Unlock';
+                    input.value = '';
+                    if (newStatus.lockedUntil) {
+                        showLockedOutMessage(newStatus.lockedUntil);
+                    } else {
+                        const attemptsLeft = 3 - newStatus.failCount;
+                        errorDiv.textContent = '❌ Galat password! (' + attemptsLeft + ' attempt' + (attemptsLeft === 1 ? '' : 's') + ' left)';
+                        errorDiv.style.display = 'block';
+                        input.focus();
+                    }
+                });
+            }).catch(function () {
+                settle(function () {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '🔓 Unlock';
+                    input.value = '';
+                    errorDiv.textContent = '❌ Galat password!';
+                    errorDiv.style.display = 'block';
+                    input.focus();
+                });
+            });
         }
+    }).catch(function (err) {
+        // Ab yahan aana bahut mushkil hai (dono calls apna .catch handle karte hain),
+        // lekin phir bhi ek generic fallback rakha hai taaki button kabhi stuck na rahe.
+        console.error('Unlock flow failed unexpectedly:', err);
+        settle(function () {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '🔓 Unlock';
+            errorDiv.textContent = '⚠️ Password check nahi ho paaya. Internet check karke phir try karein.';
+            errorDiv.style.display = 'block';
+        });
     });
 });
 

@@ -150,6 +150,11 @@ function getPasswordLockStatus() {
     const uid = getUserId();
     return chatDb.ref('users/' + uid + '/pwLock').once('value').then(function (snap) {
         return snap.val() || { failCount: 0, lockedUntil: null };
+    }).catch(function (err) {
+        // Read fail ho jaaye (offline / permission / slow) to bhi lock-check kabhi
+        // password-unlock ko block na kare — hamesha "not locked" maan lo.
+        console.warn('getPasswordLockStatus failed, defaulting to unlocked:', err);
+        return { failCount: 0, lockedUntil: null };
     });
 }
 function recordFailedPasswordAttempt() {
@@ -161,12 +166,20 @@ function recordFailedPasswordAttempt() {
             update.failCount = 0;
             update.lockedUntil = Date.now() + 5 * 60 * 1000;
         }
-        return chatDb.ref('users/' + uid + '/pwLock').set(update).then(function () { return update; });
+        return chatDb.ref('users/' + uid + '/pwLock').set(update)
+            .then(function () { return update; })
+            .catch(function (err) {
+                // Firebase write fail ho jaaye to bhi UI ko sahi count dikhayein
+                console.warn('recordFailedPasswordAttempt write failed:', err);
+                return update;
+            });
     });
 }
 function clearPasswordLock() {
     const uid = getUserId();
-    return chatDb.ref('users/' + uid + '/pwLock').set({ failCount: 0, lockedUntil: null });
+    // Best-effort: is write ka fail hona kabhi bhi "sahi password" flow ko rokna nahi chahiye.
+    return chatDb.ref('users/' + uid + '/pwLock').set({ failCount: 0, lockedUntil: null })
+        .catch(function (err) { console.warn('clearPasswordLock failed (non-blocking):', err); });
 }
 
 // ============================================

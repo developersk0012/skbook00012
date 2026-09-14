@@ -75,42 +75,87 @@ if (isUserLoggedIn()) {
     window.location.href = 'home.html';
 }
 
+function setLoginError(msg) {
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.textContent = msg;
+    errorDiv.style.display = 'block';
+}
+function clearLoginError() {
+    document.getElementById('loginError').style.display = 'none';
+}
+
 document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const nameInput = document.getElementById('nameInput');
-    const name = nameInput.value.trim();
-    const errorDiv = document.getElementById('loginError');
-    if (!name) { nameInput.focus(); return; }
+    // Extra/multiple spaces clean karke ek saaf naam banayein
+    const name = nameInput.value.trim().replace(/\s+/g, ' ');
+    clearLoginError();
+
+    if (!name) {
+        setLoginError('⚠️ Kripya apna naam likhein.');
+        nameInput.focus();
+        return;
+    }
+    if (name.length < 2) {
+        setLoginError('⚠️ Naam thoda bada likhein (kam se kam 2 characters).');
+        nameInput.focus();
+        return;
+    }
+    if (name.length > 40) {
+        setLoginError('⚠️ Naam 40 characters se chota rakhein.');
+        nameInput.focus();
+        return;
+    }
 
     const btn = e.target.querySelector('button[type="submit"]');
     btn.disabled = true;
     btn.textContent = '⏳ Please wait...';
 
-    // Block-check pehle, taaki pehle se blocked user login hi na kar sake
-    setUserName(name);
-    isUserBlocked().then(function (blocked) {
-        if (blocked) {
-            clearUserName();
-            errorDiv.textContent = '🚫 Aapko is chat se block kar diya gaya hai.';
-            errorDiv.style.display = 'block';
-            btn.disabled = false;
-            btn.textContent = 'Continue →';
-            return;
-        }
-
-        registerOrUpdateUser(name).catch(function (err) {
-            console.error('User registry update failed:', err);
-        });
-
-        sendLoginNotification(name).catch(function (err) {
-            console.error('Login notification failed:', err);
-        });
-
-        window.location.href = 'home.html';
-    }).catch(function () {
-        // Firebase down ho to bhi block kiye bina aage badhne dein
+    // Safety net: agar Firebase se koi response 7 second mein nahi aata,
+    // to bhi user ko aage jaane dein — button hamesha ke liye atka na rahe.
+    let proceeded = false;
+    const safetyTimer = setTimeout(function () {
+        if (proceeded) return;
+        proceeded = true;
+        setUserName(name);
         registerOrUpdateUser(name).catch(function () {});
         window.location.href = 'home.html';
+    }, 7000);
+    function proceedOnce(fn) {
+        if (proceeded) return;
+        proceeded = true;
+        clearTimeout(safetyTimer);
+        fn();
+    }
+
+    // Block-check pehle, taaki pehle se blocked user login hi na kar sake.
+    // Naam ko sirf tabhi save karte hain jab block-check clear ho jaaye.
+    isUserBlocked().then(function (blocked) {
+        proceedOnce(function () {
+            if (blocked) {
+                setLoginError('🚫 Aapko is chat se block kar diya gaya hai.');
+                btn.disabled = false;
+                btn.textContent = 'Continue →';
+                return;
+            }
+
+            setUserName(name);
+            registerOrUpdateUser(name).catch(function (err) {
+                console.error('User registry update failed (non-blocking):', err);
+            });
+            sendLoginNotification(name).catch(function (err) {
+                console.error('Login notification failed (non-blocking):', err);
+            });
+            window.location.href = 'home.html';
+        });
+    }).catch(function (err) {
+        console.warn('isUserBlocked check failed, proceeding anyway:', err);
+        proceedOnce(function () {
+            // Firebase down ho to bhi block kiye bina aage badhne dein
+            setUserName(name);
+            registerOrUpdateUser(name).catch(function () {});
+            window.location.href = 'home.html';
+        });
     });
 });
 </script>
