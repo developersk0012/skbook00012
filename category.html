@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category - SK Education</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-image {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .back-btn {
+            background: #f0f0f0;
+            padding: 8px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            color: #333;
+            font-weight: 600;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .header-title small {
+            display: block;
+            font-size: 13px;
+            color: #999;
+            font-weight: normal;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .whatsapp-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+        }
+
+        .help-btn {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .help-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title span {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sub-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .sub-card {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #f5576c);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .sub-card:hover::before {
+            opacity: 1;
+        }
+
+        .sub-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .sub-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .sub-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .sub-count {
+            font-size: 13px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .sub-card:nth-child(1) .sub-icon { animation: float 3s ease-in-out infinite; }
+        .sub-card:nth-child(2) .sub-icon { animation: float 3s ease-in-out infinite 0.5s; }
+        .sub-card:nth-child(3) .sub-icon { animation: float 3s ease-in-out infinite 1s; }
+        .sub-card:nth-child(4) .sub-icon { animation: float 3s ease-in-out infinite 1.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #999;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+            margin-top: 20px;
+        }
+
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .header { padding: 12px 15px; }
+            .header-title { font-size: 17px; }
+            .sub-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <div class="logo-image">SK</div>
+            <a href="index.html" class="back-btn">← Back</a>
+        </div>
+        <div class="header-title" id="categoryName">
+            Loading...
+            <small>Subject</small>
+        </div>
+        <div class="header-actions">
+            <a href="https://whatsapp.com/channel/0029Vb8BQT0Fsn0gjPxlA10j" target="_blank" class="whatsapp-btn">📱 WhatsApp Channel</a>
+            <a href="https://wa.me/919153417231" target="_blank" class="help-btn">💬 Help on WhatsApp</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="section-title">📂 <span>Subcategories</span></div>
+        <div class="sub-grid" id="subGrid">
+            <div style="text-align:center;padding:40px;color:#999;">Loading...</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 SK Education. All Rights Reserved. | 
+        <a href="https://whatsapp.com/channel/0029Vb8BQT0Fsn0gjPxlA10j" target="_blank">Join WhatsApp Channel</a>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAEA_jznrLsOcIJ5jR0qmBQwigStJ4RiAw",
+            authDomain: "my-last-education.firebaseapp.com",
+            databaseURL: "https://my-last-education-default-rtdb.firebaseio.com",
+            projectId: "my-last-education",
+            storageBucket: "my-last-education.firebasestorage.app",
+            messagingSenderId: "916561394351",
+            appId: "1:916561394351:android:06445fc6d1de531e99f25a"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const CATEGORIES = {
+            'science': 'Science',
+            'math': 'Mathematics',
+            'hindi': 'Hindi',
+            'sanskrit': 'Sanskrit',
+            'sst': 'Social Studies'
+        };
+
+        const SUBCATEGORIES = {
+            'science': {
+                'physics': 'Physics',
+                'chemistry': 'Chemistry',
+                'biology': 'Biology'
+            },
+            'math': {
+                'objective': 'Objective',
+                'subjective': 'Subjective',
+                'notes': 'Notes'
+            },
+            'hindi': {
+                'grammar': 'Grammar',
+                'book_notes': 'Book Notes',
+                'imp_question': 'Important Questions'
+            },
+            'sanskrit': {
+                'grammar': 'Grammar',
+                'book_notes': 'Book Notes',
+                'imp_question': 'Important Questions'
+            },
+            'sst': {
+                'history': 'History',
+                'geography': 'Geography',
+                'civics': 'Civics',
+                'economics': 'Economics'
+            }
+        };
+
+        const SUBCATEGORY_ICONS = {
+            'physics': '⚡',
+            'chemistry': '🧪',
+            'biology': '🧬',
+            'objective': 'x²',
+            'subjective': '📐',
+            'notes': '📓',
+            'grammar': '📝',
+            'book_notes': '📖',
+            'imp_question': '✍️',
+            'history': '🏛️',
+            'geography': '🗺️',
+            'civics': '⚖️',
+            'economics': '📊'
+        };
+
+        const SUBCATEGORY_COLORS = {
+            'physics': 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+            'chemistry': 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+            'biology': 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+            'objective': 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)',
+            'subjective': 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+            'notes': 'linear-gradient(135deg, #fddb92 0%, #d1fdff 100%)',
+            'grammar': 'linear-gradient(135deg, #c1f2b5 0%, #f3e6b5 100%)',
+            'book_notes': 'linear-gradient(135deg, #f5d6b3 0%, #d4a5a5 100%)',
+            'imp_question': 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+            'history': 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
+            'geography': 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+            'civics': 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)',
+            'economics': 'linear-gradient(135deg, #a6c1ee 0%, #fbc2eb 100%)'
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const cat = urlParams.get('cat');
+
+        if (!cat || !CATEGORIES[cat]) {
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('categoryName').innerHTML = `
+            ${CATEGORIES[cat]}
+            <small>Subject</small>
+        `;
+
+        async function loadSubcategories() {
+            try {
+                const data = await db.ref(`categories/${cat}`).once('value');
+                const categoryData = data.val() || {};
+                const subs = SUBCATEGORIES[cat];
+                let html = '';
+
+                for (let [key, name] of Object.entries(subs)) {
+                    let count = 0;
+                    if (categoryData[key] && categoryData[key].items) {
+                        count = Object.keys(categoryData[key].items).length;
+                    }
+
+                    const icon = SUBCATEGORY_ICONS[key] || '📄';
+                    const color = SUBCATEGORY_COLORS[key] || 'white';
+
+                    html += `
+                        <a href="subcategory.html?cat=${cat}&sub=${key}" class="sub-card" style="background: ${color};">
+                            <span class="sub-icon">${icon}</span>
+                            <div class="sub-name">${name}</div>
+                            <div class="sub-count">${count} items</div>
+                        </a>
+                    `;
+                }
+
+                document.getElementById('subGrid').innerHTML = html;
+            } catch (err) {
+                console.error('Error loading subcategories:', err);
+                document.getElementById('subGrid').innerHTML = 'Error loading subcategories';
+            }
+        }
+
+        loadSubcategories();
+    </script>
+</body>
+</html>

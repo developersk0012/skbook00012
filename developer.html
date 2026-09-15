@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer - SK Education</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c2e 0%, #1a1a3e 50%, #2d1b69 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* ===== LOGIN ===== */
+        .admin-login {
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 45px 35px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .admin-login .lock-icon { font-size: 50px; margin-bottom: 10px; }
+        .admin-login h2 { color: white; font-size: 28px; margin-bottom: 5px; }
+        .admin-login p { color: #a5b4fc; font-size: 15px; margin-bottom: 25px; }
+        .admin-login input {
+            width: 100%; padding: 14px 18px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05); color: white; font-size: 16px; margin-bottom: 15px; transition: all 0.3s ease;
+        }
+        .admin-login input:focus { outline: none; border-color: #4361ee; background: rgba(255, 255, 255, 0.08); }
+        .admin-login button {
+            width: 100%; padding: 15px; background: linear-gradient(90deg, #4361ee, #f72585); border: none; border-radius: 12px;
+            color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.3s ease;
+        }
+        .admin-login button:hover { transform: scale(1.02); box-shadow: 0 8px 30px rgba(67, 97, 238, 0.35); }
+        .admin-login .error { color: #f72585; margin-top: 10px; display: none; }
+
+        /* ===== PANEL ===== */
+        .admin-container { max-width: 1100px; margin: 0 auto; padding: 20px 25px 40px; }
+        .admin-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(12px); border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 25px; flex-wrap: wrap; gap: 12px;
+        }
+        .admin-header-left { display: flex; align-items: center; gap: 15px; }
+        .admin-header-left .logo-icon {
+            width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #4361ee, #f72585);
+            display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+        .admin-header-left h2 { font-size: 22px; color: white; margin: 0; }
+        .admin-header-left small { color: #a5b4fc; font-size: 13px; display: block; }
+        .admin-header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .logout-btn {
+            padding: 10px 22px; background: rgba(247, 37, 133, 0.15); color: #f72585; border: 1px solid rgba(247, 37, 133, 0.15);
+            border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.3s ease;
+        }
+        .logout-btn:hover { background: rgba(247, 37, 133, 0.3); }
+
+        .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .admin-stat-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(8px); border-radius: 14px; padding: 20px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.06); }
+        .admin-stat-value { font-size: 32px; font-weight: 700; color: white; }
+        .admin-stat-label { color: #a5b4fc; font-size: 14px; margin-top: 4px; }
+
+        .admin-tabs { display: flex; gap: 8px; margin-bottom: 25px; flex-wrap: wrap; background: rgba(255, 255, 255, 0.03); padding: 6px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.06); }
+        .admin-tab { padding: 10px 22px; border: none; border-radius: 10px; background: transparent; color: #a5b4fc; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .admin-tab.active { background: linear-gradient(90deg, #4361ee, #f72585); color: white; box-shadow: 0 4px 20px rgba(67, 97, 238, 0.3); }
+        .admin-tab:hover:not(.active) { background: rgba(255, 255, 255, 0.06); }
+
+        .admin-card { background: rgba(255, 255, 255, 0.04); backdrop-filter: blur(8px); border-radius: 16px; padding: 25px 30px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 20px; }
+        .admin-card h3 { color: white; font-size: 20px; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
+        .admin-card .form-group { margin-bottom: 16px; }
+        .admin-card label { display: block; color: #a5b4fc; font-size: 14px; font-weight: 600; margin-bottom: 5px; }
+        .admin-card input, .admin-card select, .admin-card textarea {
+            width: 100%; padding: 12px 16px; border-radius: 10px; border: 2px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05); color: white; font-size: 14px; transition: all 0.3s ease;
+        }
+        .admin-card input:focus, .admin-card select:focus, .admin-card textarea:focus { outline: none; border-color: #4361ee; background: rgba(255, 255, 255, 0.08); }
+        .admin-card input::placeholder, .admin-card textarea::placeholder { color: #4a5a7a; }
+        .admin-card select option { background: #1a1a3e; }
+
+        .btn-primary { padding: 12px 30px; background: linear-gradient(90deg, #4361ee, #f72585); border: none; border-radius: 10px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3); }
+        .btn-danger-small { background: rgba(247, 37, 133, 0.15); color: #f72585; border: 1px solid rgba(247, 37, 133, 0.15); padding: 4px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.3s; }
+        .btn-danger-small:hover { background: rgba(247, 37, 133, 0.3); }
+        .btn-edit-small { background: rgba(76, 201, 240, 0.15); color: #4cc9f0; border: 1px solid rgba(76, 201, 240, 0.15); padding: 4px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.3s; }
+        .btn-edit-small:hover { background: rgba(76, 201, 240, 0.3); }
+        .btn-secondary { padding: 12px 22px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; color: #a5b4fc; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+
+        .admin-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: white; gap: 10px; flex-wrap: wrap; }
+        .admin-list-item .item-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .admin-list-item strong { display: block; font-size: 15px; }
+        .admin-list-item small { color: #6a7a9e; font-size: 13px; }
+
+        .admin-tab-content { display: none; }
+        .admin-tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .success-msg { color: #4cc9f0; margin-top: 10px; display: none; }
+        .empty-msg { color: #6a7a9e; text-align: center; padding: 20px; }
+
+        @media (max-width: 768px) {
+            .admin-container { padding: 15px; }
+            .admin-tabs { flex-direction: column; background: transparent; border: none; padding: 0; }
+            .admin-tab { text-align: center; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); }
+            .admin-card { padding: 18px; }
+            .admin-header { flex-direction: column; align-items: stretch; text-align: center; }
+            .admin-header-left { justify-content: center; }
+            .admin-header-right { justify-content: center; }
+            .admin-login { margin: 40px 15px; padding: 30px 20px; }
+        }
+        @media (max-width: 480px) {
+            .admin-stat-value { font-size: 24px; }
+            .admin-tab { font-size: 13px; padding: 8px 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- LOGIN (same admin password as admin panel) -->
+        <div id="loginScreen" style="display:none;">
+            <div class="admin-login">
+                <div class="lock-icon">👨‍💻</div>
+                <h2>Developer Access</h2>
+                <p>Enter admin password to continue</p>
+                <form id="devLoginForm">
+                    <input type="password" id="devPassword" placeholder="Enter password" required>
+                    <button type="submit">Login</button>
+                    <div id="loginError" class="error">Invalid password!</div>
+                </form>
+            </div>
+        </div>
+
+        <!-- PANEL -->
+        <div id="devPanel" style="display:none;">
+            <div class="admin-container">
+                <div class="admin-header">
+                    <div class="admin-header-left">
+                        <div class="logo-icon">SK</div>
+                        <div>
+                            <h2>👨‍💻 Developer Panel</h2>
+                            <small>Manage study materials (PDFs / Videos)</small>
+                        </div>
+                    </div>
+                    <div class="admin-header-right">
+                        <a href="admin.html" class="logout-btn" style="text-decoration:none;display:inline-block;">🔐 Admin Panel</a>
+                        <button onclick="logoutDev()" class="logout-btn">Logout</button>
+                    </div>
+                </div>
+
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="totalMaterials">0</div>
+                        <div class="admin-stat-label">Total Materials</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="totalBatches">0</div>
+                        <div class="admin-stat-label">Total Batches</div>
+                    </div>
+                </div>
+
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="showDevTab('add', this)">➕ Add Material</button>
+                    <button class="admin-tab" onclick="showDevTab('manage', this)">📋 Manage</button>
+                    <button class="admin-tab" onclick="showDevTab('batches', this)">🎓 Batches</button>
+                </div>
+
+                <!-- TAB: ADD MATERIAL -->
+                <div id="tab-add" class="admin-tab-content active">
+                    <div class="admin-card">
+                        <h3>📤 Upload Study Material</h3>
+                        <form id="addMaterialForm">
+                            <div class="form-group">
+                                <label>Batch *</label>
+                                <select id="matBatch" required>
+                                    <option value="">Select Batch</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Category *</label>
+                                <select id="matCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="science">🔬 Science</option>
+                                    <option value="math">📐 Mathematics</option>
+                                    <option value="hindi">📝 Hindi</option>
+                                    <option value="sanskrit">🕉️ Sanskrit</option>
+                                    <option value="sst">🌍 Social Studies</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Subcategory</label>
+                                <select id="matSubcategory">
+                                    <option value="">Select Subcategory</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Material Type *</label>
+                                <select id="matType" required>
+                                    <option value="pdf">📄 PDF</option>
+                                    <option value="video">🎥 Video</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Title *</label>
+                                <input type="text" id="matTitle" placeholder="Enter title" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="matDesc" rows="2" placeholder="Brief description"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>File URL *</label>
+                                <input type="url" id="matFileUrl" placeholder="https://example.com/file.pdf" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Thumbnail URL (for videos)</label>
+                                <input type="url" id="matThumbnail" placeholder="https://example.com/thumbnail.jpg">
+                            </div>
+                            <button type="submit" class="btn-primary">➕ Add Material</button>
+                            <div id="addSuccess" class="success-msg">✅ Material added successfully!</div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB: MANAGE -->
+                <div id="tab-manage" class="admin-tab-content">
+                    <div class="admin-card">
+                        <h3>📋 All Materials</h3>
+                        <div class="form-group" style="margin-bottom:15px;">
+                            <input type="text" id="manageSearchInput" placeholder="🔍 Search materials by title...">
+                        </div>
+                        <div id="manageList"><div class="empty-msg">Loading...</div></div>
+                    </div>
+                </div>
+
+                <!-- TAB: BATCHES -->
+                <div id="tab-batches" class="admin-tab-content">
+                    <div class="admin-card">
+                        <h3 id="batchFormTitle">🎓 Add New Batch</h3>
+                        <form id="batchForm">
+                            <input type="hidden" id="batchEditId" value="">
+                            <div class="form-group">
+                                <label>Batch Name *</label>
+                                <input type="text" id="batchNameInput" placeholder="e.g. Summer Batch 2027" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Icon (Emoji) *</label>
+                                <input type="text" id="batchIconInput" placeholder="🏆" maxlength="4" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Banner Image URL *</label>
+                                <input type="url" id="batchImageInput" placeholder="https://example.com/banner.jpg" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description *</label>
+                                <input type="text" id="batchDescInput" placeholder="Short tagline for this batch" required>
+                            </div>
+                            <button type="submit" class="btn-primary" id="batchSubmitBtn">➕ Add Batch</button>
+                            <button type="button" class="btn-secondary" id="batchCancelEditBtn" style="display:none;margin-left:10px;">Cancel Edit</button>
+                            <div id="batchSuccess" class="success-msg">✅ Batch saved successfully!</div>
+                        </form>
+                    </div>
+                    <div class="admin-card">
+                        <h3>🎓 All Batches</h3>
+                        <div id="batchesList"><div class="empty-msg">Loading...</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CHECK LOGIN (same admin password as admin.html — Firebase se)
+        // ========================================
+        const devLoggedIn = sessionStorage.getItem('admin_logged_in');
+
+        if (devLoggedIn === 'true') {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('devPanel').style.display = 'block';
+            loadDevData();
+        } else {
+            document.getElementById('loginScreen').style.display = 'block';
+            document.getElementById('devPanel').style.display = 'none';
+        }
+
+        document.getElementById('devLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('devPassword').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            loadAdminPassword().then(function(correctPassword) {
+                submitBtn.disabled = false;
+                if (password === correctPassword) {
+                    sessionStorage.setItem('admin_logged_in', 'true');
+                    location.reload();
+                } else {
+                    document.getElementById('loginError').style.display = 'block';
+                }
+            }).catch(function(err) {
+                submitBtn.disabled = false;
+                console.error('Password check failed:', err);
+                document.getElementById('loginError').style.display = 'block';
+            });
+        });
+
+        // ========================================
+        // TAB SWITCHING
+        // ========================================
+        function showDevTab(tab, el) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.admin-tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+        }
+
+        // ========================================
+        // SUBCATEGORY DROPDOWN
+        // ========================================
+        document.getElementById('matCategory').addEventListener('change', function() {
+            const cat = this.value;
+            const subSelect = document.getElementById('matSubcategory');
+            subSelect.innerHTML = '<option value="">Select Subcategory</option>';
+            if (cat && SUBCATEGORIES[cat]) {
+                for (let [key, name] of Object.entries(SUBCATEGORIES[cat])) {
+                    subSelect.innerHTML += `<option value="${key}">${name}</option>`;
+                }
+            }
+        });
+
+        // ========================================
+        // BATCH DROPDOWN
+        // ========================================
+        function populateBatchDropdown(batches) {
+            const select = document.getElementById('matBatch');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">Select Batch</option>';
+            Object.keys(batches).sort(function(a, b) { return Number(a) - Number(b); }).forEach(function(id) {
+                const b = batches[id];
+                select.innerHTML += `<option value="${id}">${b.icon} ${b.name}</option>`;
+            });
+            if (currentVal) select.value = currentVal;
+        }
+
+        let adminBatchesCache = {};
+
+        // ========================================
+        // ADD MATERIAL
+        // ========================================
+        document.getElementById('addMaterialForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const batch_id = document.getElementById('matBatch').value;
+            const category_id = document.getElementById('matCategory').value;
+            const subcategory_id = document.getElementById('matSubcategory').value;
+            const type = document.getElementById('matType').value;
+            const title = document.getElementById('matTitle').value;
+            const description = document.getElementById('matDesc').value;
+            const file_path = document.getElementById('matFileUrl').value;
+            const thumbnail = document.getElementById('matThumbnail').value;
+
+            if (!batch_id || !category_id || !title || !file_path) {
+                showToast('Please fill all required fields!', 'error');
+                return;
+            }
+
+            const data = {
+                batch_id: parseInt(batch_id),
+                category_id: category_id,
+                subcategory_id: subcategory_id || '',
+                type: type,
+                title: title,
+                description: description || '',
+                file_path: file_path,
+                thumbnail: thumbnail || '',
+                timestamp: new Date().toISOString()
+            };
+
+            db.ref('pdfs').push(data).then(() => {
+                document.getElementById('addSuccess').style.display = 'block';
+                setTimeout(() => document.getElementById('addSuccess').style.display = 'none', 3000);
+                this.reset();
+                showToast('✅ Material added successfully!');
+                loadManageList();
+                loadDevStats();
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        });
+
+        // ========================================
+        // MANAGE LIST (search filter ke saath)
+        // ========================================
+        let allMaterials = [];
+
+        function renderManageList(filterText) {
+            filterText = (filterText || '').toLowerCase().trim();
+            const list = filterText
+                ? allMaterials.filter(m => (m.item.title || '').toLowerCase().includes(filterText))
+                : allMaterials;
+
+            let html = '';
+            list.forEach(function(entry) {
+                const item = entry.item;
+                const key = entry.key;
+                const batchName = (adminBatchesCache[item.batch_id] && adminBatchesCache[item.batch_id].name) || 'Unknown';
+                const catName = CATEGORIES[item.category_id] || 'Unknown';
+
+                html += `
+                    <div class="admin-list-item">
+                        <div>
+                            <strong>${item.title}</strong>
+                            <small>${batchName} • ${catName} • ${item.type}</small>
+                        </div>
+                        <button onclick="deleteMaterial('${key}')" class="btn-danger-small">✕ Delete</button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('manageList').innerHTML = html || `<div class="empty-msg">${filterText ? 'No matching materials found' : 'No materials uploaded'}</div>`;
+        }
+
+        function loadManageList() {
+            db.ref('pdfs').orderByChild('timestamp').on('value', function(snap) {
+                const data = snap.val();
+                allMaterials = [];
+
+                if (data) {
+                    const keys = Object.keys(data).reverse();
+                    keys.forEach(function(key) {
+                        allMaterials.push({ key: key, item: data[key] });
+                    });
+                }
+
+                renderManageList(document.getElementById('manageSearchInput').value);
+            }, function(err) {
+                console.error('loadManageList error:', err);
+                document.getElementById('manageList').innerHTML = '<div class="empty-msg">❌ Error loading materials</div>';
+            });
+        }
+
+        document.getElementById('manageSearchInput').addEventListener('input', function() {
+            renderManageList(this.value);
+        });
+
+        // ========================================
+        // DELETE MATERIAL
+        // ========================================
+        function deleteMaterial(id) {
+            if (confirm('Delete this material?')) {
+                db.ref('pdfs/' + id).remove().then(function() {
+                    showToast('🗑️ Material deleted');
+                    loadDevStats();
+                }).catch(function(err) {
+                    console.error(err);
+                    showToast('❌ Delete nahi ho paya', 'error');
+                });
+            }
+        }
+
+        // ========================================
+        // STATS
+        // ========================================
+        function loadDevStats() {
+            db.ref('pdfs').on('value', function(snap) {
+                const data = snap.val();
+                document.getElementById('totalMaterials').textContent = data ? Object.keys(data).length : 0;
+            });
+        }
+
+        // ========================================
+        // BATCHES — ADD / EDIT / DELETE
+        // ========================================
+        function loadBatchesList(batches) {
+            const container = document.getElementById('batchesList');
+            const keys = Object.keys(batches).sort(function(a, b) { return Number(a) - Number(b); });
+
+            if (!keys.length) {
+                container.innerHTML = '<div class="empty-msg">No batches yet — upar se ek add karein</div>';
+                return;
+            }
+
+            let html = '';
+            keys.forEach(function(id) {
+                const b = batches[id];
+                html += `
+                    <div class="admin-list-item">
+                        <div>
+                            <strong>${b.icon} ${b.name}</strong>
+                            <small>${b.description}</small>
+                        </div>
+                        <div class="item-actions">
+                            <button onclick="editBatch('${id}')" class="btn-edit-small">✏️ Edit</button>
+                            <button onclick="deleteBatch('${id}')" class="btn-danger-small">✕ Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function refreshBatchesUI() {
+            return loadBatches().then(function(batches) {
+                adminBatchesCache = batches;
+                populateBatchDropdown(batches);
+                loadBatchesList(batches);
+                document.getElementById('totalBatches').textContent = Object.keys(batches).length;
+                return batches;
+            });
+        }
+
+        document.getElementById('batchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const editId = document.getElementById('batchEditId').value;
+            const data = {
+                name: document.getElementById('batchNameInput').value.trim(),
+                icon: document.getElementById('batchIconInput').value.trim(),
+                image: document.getElementById('batchImageInput').value.trim(),
+                description: document.getElementById('batchDescInput').value.trim()
+            };
+
+            if (!data.name || !data.icon || !data.image || !data.description) {
+                showToast('Please fill all fields!', 'error');
+                return;
+            }
+
+            const savePromise = editId
+                ? db.ref('batches/' + editId).update(data)
+                : loadBatches().then(function(batches) {
+                    const newId = getNextBatchId(batches);
+                    return db.ref('batches/' + newId).set(data);
+                });
+
+            savePromise.then(function() {
+                document.getElementById('batchSuccess').style.display = 'block';
+                setTimeout(() => document.getElementById('batchSuccess').style.display = 'none', 3000);
+                showToast(editId ? '✅ Batch updated!' : '✅ New batch add ho gaya!');
+                cancelBatchEdit();
+                refreshBatchesUI();
+            }).catch(function(err) {
+                console.error(err);
+                showToast('❌ Kuch gadbad ho gayi', 'error');
+            });
+        });
+
+        function editBatch(id) {
+            const batch = adminBatchesCache[id];
+            if (!batch) return;
+            document.getElementById('batchEditId').value = id;
+            document.getElementById('batchNameInput').value = batch.name;
+            document.getElementById('batchIconInput').value = batch.icon;
+            document.getElementById('batchImageInput').value = batch.image;
+            document.getElementById('batchDescInput').value = batch.description;
+            document.getElementById('batchFormTitle').textContent = '✏️ Edit Batch: ' + batch.name;
+            document.getElementById('batchSubmitBtn').textContent = '💾 Update Batch';
+            document.getElementById('batchCancelEditBtn').style.display = 'inline-block';
+            document.getElementById('tab-batches').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelBatchEdit() {
+            document.getElementById('batchForm').reset();
+            document.getElementById('batchEditId').value = '';
+            document.getElementById('batchFormTitle').textContent = '🎓 Add New Batch';
+            document.getElementById('batchSubmitBtn').textContent = '➕ Add Batch';
+            document.getElementById('batchCancelEditBtn').style.display = 'none';
+        }
+        document.getElementById('batchCancelEditBtn').addEventListener('click', cancelBatchEdit);
+
+        function deleteBatch(id) {
+            db.ref('pdfs').once('value').then(function(snap) {
+                const data = snap.val();
+                let hasContent = false;
+                if (data) {
+                    hasContent = Object.values(data).some(function(pdf) {
+                        return pdf && String(pdf.batch_id) === String(id);
+                    });
+                }
+                const msg = hasContent
+                    ? '⚠️ Is batch mein study materials maujood hain! Delete karne se wo materials "Unknown" batch ke andar reh jaayenge. Phir bhi delete karna hai?'
+                    : 'Delete this batch?';
+                if (confirm(msg)) {
+                    db.ref('batches/' + id).remove().then(function() {
+                        showToast('🗑️ Batch delete ho gaya');
+                        refreshBatchesUI();
+                    }).catch(function(err) {
+                        console.error(err);
+                        showToast('❌ Delete nahi ho paya', 'error');
+                    });
+                }
+            });
+        }
+
+        // ========================================
+        // INIT
+        // ========================================
+        function loadDevData() {
+            refreshBatchesUI();
+            loadManageList();
+            loadDevStats();
+        }
+
+        // ========================================
+        // LOGOUT
+        // ========================================
+        function logoutDev() {
+            sessionStorage.removeItem('admin_logged_in');
+            location.reload();
+        }
+
+        window.showDevTab = showDevTab;
+        window.deleteMaterial = deleteMaterial;
+        window.editBatch = editBatch;
+        window.deleteBatch = deleteBatch;
+        window.logoutDev = logoutDev;
+    </script>
+</body>
+</html>
