@@ -94,12 +94,6 @@
         }
 
         /* ===== ADMIN PANEL ===== */
-        html {
-            scroll-behavior: smooth;
-        }
-        body {
-            -webkit-overflow-scrolling: touch;
-        }
         .admin-container {
             max-width: 1100px;
             margin: 0 auto;
@@ -428,7 +422,7 @@
 
         /* ===== CHAT (Messages tab) ===== */
         .chat-layout { display: flex; gap: 15px; height: 560px; }
-        .chat-list-panel { width: 300px; flex-shrink: 0; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; display: flex; flex-direction: column; }
+        .chat-list-panel { width: 300px; flex-shrink: 0; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); overflow-y: auto; display: flex; flex-direction: column; }
         .chat-list-header { padding: 16px 18px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; }
         .chat-list-item { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); cursor: pointer; transition: background 0.2s; position: relative; }
         .chat-list-item:hover, .chat-list-item.active { background: rgba(67,97,238,0.12); }
@@ -840,49 +834,18 @@
 .chat-link-input{
   height:36px;
   padding:0 12px;
+  margin-bottom:6px;
   border-radius:12px;
   border:1px solid var(--chat-line);
   background:#101e32;
   color:#f4f7fb;
   outline:none;
   font-size:11px;
-  flex:1;
-  min-width:0;
 }
 .chat-link-input:focus{
   border-color:rgba(117,100,255,.5);
   box-shadow:0 0 0 3px rgba(117,100,255,.07);
 }
-
-.chat-link-panel{
-  display:none;
-  align-items:center;
-  gap:6px;
-  margin-bottom:8px;
-}
-.chat-link-panel.show{display:flex}
-.chat-link-panel-close{
-  flex:0 0 30px;
-  width:30px;height:30px;
-  border:0;border-radius:9px;
-  background:rgba(255,255,255,.05);
-  color:#aebbd0;
-  font-size:13px;
-  cursor:pointer;
-}
-.chat-plus-btn{
-  flex:0 0 44px;
-  width:44px;height:44px;
-  border-radius:15px;
-  border:1px solid var(--chat-line);
-  background:#101e32;
-  color:#c2cede;
-  font-size:24px;
-  font-weight:300;
-  line-height:1;
-  cursor:pointer;
-}
-.chat-plus-btn:active{transform:scale(.95)}
 
 .chat-input-bar input#chatReplyInput{
   height:44px;
@@ -1035,7 +998,11 @@
    Visual/layout only. Existing Firebase + JS functionality kept.
    ========================================================= */
 @media (max-width: 768px) {
-  html, body { width:100% !important; }
+  /* Pehle ye poore mobile par html/body scroll hamesha ke liye band kar
+     deta tha — isliye admin ka poora HOME PAGE bhi scroll nahi ho pa raha
+     tha. Ab sirf tab lock hota hai jab koi chat thread khula ho
+     (.chat-fullscreen-lock class JS se lagti/hatati hai). */
+  html.chat-fullscreen-lock, body.chat-fullscreen-lock { width:100% !important; height:100% !important; overflow:hidden !important; }
   #app { width:100% !important; min-height:100dvh !important; }
 
   /* When a conversation is opened, use the whole phone like announcements */
@@ -1458,7 +1425,6 @@
                 <!-- TABS -->
                 <div class="admin-tabs">
                     <button class="admin-tab active" onclick="showAdminTab('messages', this)">💬 Messages</button>
-                    <button class="admin-tab" onclick="showAdminTab('users', this)">👥 Users</button>
                     <button class="admin-tab" onclick="showAdminTab('settings', this)">⚙️ Settings</button>
                 </div>
 
@@ -1477,73 +1443,27 @@
                             <div class="chat-thread-active" id="chatThreadActive" style="display:none;">
                                 <div class="chat-thread-header">
                                     <button class="chat-back-btn" id="chatBackBtn">←</button>
-                                    <div style="flex:1;min-width:0;">
-                                        <strong>💬 Chat with User 🥰</strong>
+                                    <div>
+                                        <strong>💬 Chat with Wife 🥰</strong>
                                         <small id="chatThreadUserName" style="display:block;color:#a5b4fc;font-size:12px;">User</small>
                                         <small id="chatThreadPresence" style="display:block;font-size:11px;"></small>
                                     </div>
-                                    <button type="button" id="chatMusicBtn" title="Play a song together" style="background:rgba(76,201,240,0.15);color:#4cc9f0;border:1px solid rgba(76,201,240,0.2);border-radius:50px;padding:8px 12px;cursor:pointer;font-size:15px;flex-shrink:0;">🎵</button>
-                                    <button type="button" id="chatClearBtn" title="Clear this chat" style="background:rgba(247,37,133,0.15);color:#f72585;border:1px solid rgba(247,37,133,0.2);border-radius:50px;padding:8px 12px;cursor:pointer;font-size:15px;flex-shrink:0;">🗑️</button>
                                 </div>
-
-                                <!-- MUSIC PANEL -->
-                                <div id="adminMusicPanel" style="display:none;padding:12px 16px;background:rgba(76,201,240,0.08);border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;">
-                                    <div style="display:flex;gap:8px;margin-bottom:8px;">
-                                        <input type="text" id="adminMusicTitle" placeholder="Song title" style="flex:1;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-size:13px;">
-                                    </div>
-                                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                                        <input type="file" id="adminMusicFile" accept="audio/*" style="display:none;">
-                                        <button type="button" id="adminMusicUploadBtn" style="background:rgba(67,97,238,0.2);color:#a5b4fc;border:1px solid rgba(67,97,238,0.2);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;">📁 Upload Song</button>
-                                        <input type="url" id="adminMusicUrl" placeholder="...or paste song URL" style="flex:1;min-width:160px;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-size:13px;">
-                                        <button type="button" id="adminMusicSendBtn" style="background:linear-gradient(90deg,#4361ee,#f72585);color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600;">🎧 Request to Play Together</button>
-                                    </div>
-                                    <div style="color:#6a7a9e;font-size:11px;margin-top:6px;">Audio files under 5MB only. User ko allow karna hoga tabhi song bajega.</div>
-                                </div>
-
-                                <!-- MUSIC PLAYER BAR -->
-                                <div id="adminMusicBar" style="display:none;padding:12px 16px;background:rgba(67,97,238,0.15);border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0;align-items:center;gap:12px;"></div>
-
                                 <div class="chat-messages" id="chatMessages"></div>
                                 <div class="reply-preview-bar" id="adminReplyPreviewBar">
                                     <div class="reply-preview-text" id="adminReplyPreviewText"></div>
                                     <button class="reply-preview-cancel" id="adminReplyPreviewCancel">✕</button>
                                 </div>
                                 <div class="chat-input-bar">
-                                    <div class="chat-quick-panel" id="adminQuickPanel">
-                                        <div class="quick-panel-head">
-                                            <strong>✨ Quick Send</strong>
-                                            <button type="button" class="chat-link-panel-close" id="adminQuickPanelClose">✕</button>
-                                        </div>
-                                        <div class="quick-panel-actions">
-                                            <button type="button" class="quick-option-btn" id="adminEmojiBtn">😊 Emoji</button>
-                                            <button type="button" class="quick-option-btn" id="adminGifBtn">🎬 GIF</button><button type="button" class="quick-option-btn" id="adminLinkBtn">🔗 Link</button>
-                                        </div>
-                                        <div class="emoji-grid" id="adminEmojiGrid"></div>
-                                    </div>
-                                    <input type="file" id="adminPhotoInput" accept="image/*" style="display:none;">
-                                    <div class="chat-link-panel" id="chatLinkPanel">
-                                        <input type="text" id="chatLinkTitle" placeholder="🔗 Link title" class="chat-link-input">
-                                        <input type="url" id="chatLinkUrl" placeholder="🔗 Link URL" class="chat-link-input">
-                                        <button type="button" class="chat-link-panel-close" id="chatLinkPanelClose" title="Remove link">✕</button>
-                                    </div>
+                                    <input type="text" id="chatLinkTitle" placeholder="🔗 Link title (optional)" class="chat-link-input">
+                                    <input type="url" id="chatLinkUrl" placeholder="🔗 Link URL (optional)" class="chat-link-input">
                                     <div style="display:flex;gap:8px;">
-                                        <button type="button" class="chat-plus-btn" id="chatPlusBtn" title="Emoji, GIF & Photo">+</button>
-                                         <button type="button" class="chat-photo-quick-btn" id="adminPhotoBtn" title="Send photo">📷</button>
                                         <input type="text" id="chatReplyInput" placeholder="Type a message...">
                                         <button id="chatSendBtn" class="chat-send-btn">➤</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- TAB: USERS -->
-                <div id="tab-users" class="admin-tab-content">
-                    <div class="admin-card">
-                        <h3>👥 All Users</h3>
-                        <p style="color:#a5b4fc;font-size:13px;margin-bottom:14px;">Sabhi users jo kabhi bhi login hue hain — permanently block ya unblock kar sakte hain.</p>
-                        <div id="usersList"><div class="empty-msg">Loading...</div></div>
                     </div>
                 </div>
 
@@ -1556,12 +1476,6 @@
                             <p>When enabled, users will see a maintenance page</p>
                             <button id="maintenanceToggle" class="btn-warning" onclick="toggleMaintenance()">Turn ON</button>
                             <div id="maintenanceStatus" style="margin-top:10px;color:#a5b4fc;">Current: OFF</div>
-                        </div>
-                        <div class="setting-item">
-                            <h4>📢 Announcement Access</h4>
-                            <p>Jab band ho, users "Announcement" page bilkul nahi khol payenge — password screen tak nahi dikhega.</p>
-                            <button id="announcementCloseToggle" class="btn-warning" onclick="toggleAnnouncementClosed()">Close Announcement</button>
-                            <div id="announcementCloseStatus" style="margin-top:10px;color:#a5b4fc;">Current: OPEN</div>
                         </div>
                         <div class="setting-item">
                             <h4>💬 WhatsApp Channel Link</h4>
@@ -1660,38 +1574,42 @@
         let activeChatUserId = null;
         let activeChatListener = null;
         let activePresenceListener = null;
-        let activeChatPruned = false;
         let renderedKeys = new Set();
 
         // Remove chat messages older than 24 hours without ever blocking rendering.
-        // IMPORTANT: this must be ONE multi-path write, not one .remove() per
-        // stale message. A remove() per key was re-triggering this same
-        // 'messages' listener once per deletion (10 old messages = 10 extra
-        // Firebase round-trips + 10 extra re-renders before the thread
-        // settled), which is what made opening an older conversation feel slow.
         function pruneOldChatMessages(uid, messages) {
             if (!messages) return;
             const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-            const updates = {};
-            let hasStale = false;
             Object.keys(messages).forEach(function(key) {
                 const m = messages[key];
                 if (!m || !m.timestamp) return;
                 const t = new Date(m.timestamp).getTime();
                 if (Number.isFinite(t) && t < cutoff) {
-                    updates[key] = null;
-                    hasStale = true;
+                    db.ref('chats/' + uid + '/messages/' + key).remove().catch(function(err) {
+                        console.warn('Old message cleanup failed:', err);
+                    });
                 }
             });
-            if (hasStale) {
-                chatDb.ref('chats/' + uid + '/messages').update(updates).catch(function(err) {
-                    console.warn('Old message cleanup failed:', err);
-                });
-            }
+        }
+
+        // Purane (24hr se zyada) messages ko render se pehle hi filter kar dete
+        // hain, taaki wo pehle dikhein aur phir delete hote hi gayab ho jayein
+        // — is "flash then disappear" glitch ko fix karta hai.
+        function filterFreshMessages(messages) {
+            if (!messages) return messages;
+            const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+            const fresh = {};
+            Object.keys(messages).forEach(function(key) {
+                const m = messages[key];
+                if (m && m.timestamp && new Date(m.timestamp).getTime() >= cutoff) {
+                    fresh[key] = m;
+                }
+            });
+            return fresh;
         }
 
         function loadChatList() {
-            chatDb.ref('chats').on('value', function(snap) {
+            db.ref('chats').on('value', function(snap) {
                 chatsCache = snap.val() || {};
                 renderChatList();
                 document.getElementById('totalConversations').textContent = Object.keys(chatsCache).length;
@@ -1729,7 +1647,6 @@
                 const time = d.last_timestamp ? new Date(d.last_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
                 html += `
                     <div class="chat-list-item ${activeClass} ${unreadClass}" onclick="openChatThread('${entry.uid}')">
-                        <button type="button" class="chat-list-delete-btn" onclick="event.stopPropagation();deleteConversation('${entry.uid}')" title="Delete conversation">🗑️</button>
                         <span class="clu-time">${time}</span>
                         <div class="clu-name">${d.online ? '<span class="clu-online-dot"></span>' : ''}${d.user_name || 'Unknown'}${isUnread(d) ? '<span class="clu-unread-badge"></span>' : ''}</div>
                         <div class="clu-preview">${d.last_sender === 'admin' ? 'You: ' : ''}${preview}</div>
@@ -1739,72 +1656,34 @@
             container.innerHTML = html;
         }
 
-        // ========================================
-        // CLEAR CHAT (admin) — Firebase se bhi delete
-        // ========================================
-        function clearActiveChat() {
-            if (!activeChatUserId) return;
-            const uid = activeChatUserId;
-            const uname = (chatsCache[uid] && chatsCache[uid].user_name) || 'this user';
-            if (!confirm('Clear entire chat with ' + uname + '? Ye sab messages Firebase se bhi delete ho jayenge. Ye action undo nahi ho sakta.')) return;
-
-            chatDb.ref('chats/' + uid + '/messages').remove()
-                .then(function() {
-                    return chatDb.ref('chats/' + uid).update({
-                        last_message: '',
-                        last_sender: null,
-                        last_timestamp: null,
-                        admin_read_until: null,
-                        user_read_until: null,
-                        music: null
-                    });
-                })
-                .then(function() {
-                    showToast('✅ Chat clear ho gayi!');
-                })
-                .catch(function(err) {
-                    console.error('Clear chat failed:', err);
-                    showToast('❌ Chat clear nahi ho payi', 'error');
-                });
-        }
-        document.getElementById('chatClearBtn').addEventListener('click', clearActiveChat);
-
         function openChatThread(uid) {
-            // Cleanly detach listeners from the PREVIOUS thread before switching.
-            // The old code detached using the new uid, which left previous listeners
-            // running and made every thread switch progressively slower.
-            const previousUid = activeChatUserId;
-            if (previousUid) {
-                if (activeChatListener) {
-                    chatDb.ref('chats/' + previousUid + '/messages').off('value', activeChatListener);
-                }
-                if (activePresenceListener) {
-                    chatDb.ref('chats/' + previousUid).off('value', activePresenceListener);
-                }
-            }
-            activeChatListener = null;
-            activePresenceListener = null;
-
+            const previousUid = activeChatUserId; // purana chat, jiska listener hatana hai
             activeChatUserId = uid;
-            activeChatPruned = false; // fresh thread — allow one prune pass
             renderedKeys = new Set(); // naya thread — fresh render
             document.getElementById('chatMessages').innerHTML = '';
             document.getElementById('chatLayout').classList.add('thread-open');
+            document.documentElement.classList.add('chat-fullscreen-lock');
+            document.body.classList.add('chat-fullscreen-lock');
             document.getElementById('chatThreadEmpty').style.display = 'none';
             document.getElementById('chatThreadActive').style.display = 'flex';
             document.getElementById('chatThreadUserName').textContent = (chatsCache[uid] && chatsCache[uid].user_name) || 'User';
-            document.getElementById('adminMusicPanel').style.display = 'none';
             renderChatList();
 
-            // Naye thread pe switch — humari apni "typing" state reset karein
-            // taaki purani thread ka leftover status kabhi na dikhe.
-            if (typeof adminTypingTimeout !== 'undefined') clearTimeout(adminTypingTimeout);
-            chatDb.ref('chats/' + uid + '/admin_typing').onDisconnect().remove();
-
-            if (presenceTickInterval) clearInterval(presenceTickInterval);
-            presenceTickInterval = setInterval(function() {
-                if (currentChatMeta) renderPresence(currentChatMeta);
-            }, 1000);
+            // Purana thread listener hatao — SAHI uid aur SAHI path se, warna
+            // purana listener hamesha chalte rehta hai (listener leak), jo
+            // dheere-dheere site hang aur scroll-jump jaisi problems banata hai.
+            if (previousUid && activeChatListener) {
+                db.ref('chats/' + previousUid + '/messages').off('value', activeChatListener);
+            }
+            if (previousUid && activePresenceListener) {
+                db.ref('chats/' + previousUid).off('value', activePresenceListener);
+            }
+            if (previousUid && previousUid !== uid) {
+                db.ref('chats/' + previousUid).update({ admin_typing: false }).catch(function() {});
+            }
+            activeChatListener = null;
+            activePresenceListener = null;
+            clearTimeout(adminTypingTimeout);
 
             // PRESENCE + MARK AS READ — is chat node ko sunte hain taaki
             // online/last-seen turant dikhe, aur jab bhi naya user
@@ -1815,24 +1694,21 @@
                 currentChatMeta = data; // Seen details ke liye latest read timestamps yahin se lo.
                 renderPresence(data);
                 updateAdminMessageDetails();
-                renderAdminMusicBar(uid, data.music || null);
 
                 if (data.last_sender === 'user' && activeChatUserId === uid) {
                     const now = new Date().toISOString();
                     if (!data.admin_read_until || new Date(data.last_timestamp) > new Date(data.admin_read_until)) {
-                        chatDb.ref('chats/' + uid).update({ admin_read_until: now }).catch(function() {});
+                        db.ref('chats/' + uid).update({ admin_read_until: now }).catch(function() {});
                     }
                 }
             };
-            chatDb.ref('chats/' + uid).on('value', activePresenceListener);
+            db.ref('chats/' + uid).on('value', activePresenceListener);
 
             activeChatListener = function(snap) {
                 try {
-                    const messages = snap.val();
-                    if (!activeChatPruned) {
-                        activeChatPruned = true;
-                        pruneOldChatMessages(uid, messages);
-                    }
+                    const rawMessages = snap.val();
+                    pruneOldChatMessages(uid, rawMessages); // background cleanup, silent
+                    const messages = filterFreshMessages(rawMessages); // never render expired ones
                     renderChatMessages(messages);
                     markUserMessagesSeen(uid, messages);
                 } catch (err) {
@@ -1840,7 +1716,7 @@
                     document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">⚠️ Messages render nahi ho paaye. Retry karke dekhein.</div>';
                 }
             };
-            chatDb.ref('chats/' + uid + '/messages').on('value', activeChatListener, function(err) {
+            db.ref('chats/' + uid + '/messages').on('value', activeChatListener, function(err) {
                 console.error('Admin chat load error:', err);
                 document.getElementById('chatMessages').innerHTML = '<div class=\"empty-msg\">❌ Messages load nahi ho paaye. Firebase/Internet check karein.</div>';
             });
@@ -1865,25 +1741,20 @@
 
             const seenAt = new Date().toISOString();
             currentChatMeta.admin_read_until = seenAt;
-            chatDb.ref('chats/' + uid).update({ admin_read_until: seenAt }).then(function() {
+            db.ref('chats/' + uid).update({ admin_read_until: seenAt }).then(function() {
                 updateAdminMessageDetails();
             }).catch(function(err) {
                 console.warn('Admin seen update failed:', err);
             });
         }
 
-        const USER_TYPING_TTL_MS = 3500;
         function renderPresence(data) {
             const el = document.getElementById('chatThreadPresence');
             if (!el) return;
-            const typingRecent = data.user_typing &&
-                (Date.now() - new Date(data.user_typing).getTime() < USER_TYPING_TTL_MS);
-            if (typingRecent) {
-                el.textContent = '✍️ Typing...';
-                el.style.color = '#54e5c2';
-                return;
-            }
-            if (data.online) {
+            if (data.user_typing) {
+                el.innerHTML = 'typing<span class="typing-dots"><span></span><span></span><span></span></span>';
+                el.style.color = '#3ddc84';
+            } else if (data.online) {
                 el.textContent = '🟢 Online';
                 el.style.color = '#3ddc84';
             } else if (data.last_seen) {
@@ -1893,44 +1764,10 @@
                 el.textContent = '';
             }
         }
-        // Re-check every second so a stale "Typing..." auto-clears even
-        // if no new Firebase event arrives for this thread.
-        let presenceTickInterval = null;
 
         let adminReplyingTo = null;
         let currentThreadMessages = {};
         let currentChatMeta = {};
-
-        function escapeHtml(value) {
-            return String(value == null ? '' : value)
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-        }
-
-        function deleteAdminMessage(key) {
-            if (!activeChatUserId || !currentThreadMessages[key]) return;
-            if (!confirm('Ye message permanently delete karna hai?')) return;
-            chatDb.ref('chats/' + activeChatUserId + '/messages/' + key).remove()
-                .then(function(){ showToast('🗑️ Message delete ho gaya'); })
-                .catch(function(err){ console.error(err); showToast('❌ Message delete nahi ho paya','error'); });
-        }
-
-        function deleteConversation(uid) {
-            const uname = (chatsCache[uid] && chatsCache[uid].user_name) || 'this user';
-            if (!confirm('"' + uname + '" ki conversation delete karein? User dobara message karega to list mein phir aa jayegi.')) return;
-            const wasActive = activeChatUserId === uid;
-            chatDb.ref('chats/' + uid).remove().then(function(){
-                if (wasActive) {
-                    if (activeChatListener) chatDb.ref('chats/' + uid + '/messages').off('value', activeChatListener);
-                    if (activePresenceListener) chatDb.ref('chats/' + uid).off('value', activePresenceListener);
-                    activeChatListener = null; activePresenceListener = null; activeChatUserId = null;
-                    document.getElementById('chatLayout').classList.remove('thread-open');
-                    document.getElementById('chatThreadActive').style.display = 'none';
-                    document.getElementById('chatThreadEmpty').style.display = 'flex';
-                }
-                showToast('🗑️ Conversation delete ho gayi. User dobara message karega to phir dikhegi.');
-            }).catch(function(err){ console.error(err); showToast('❌ Conversation delete nahi ho payi','error'); });
-        }
 
         function formatAdminMessageDateTime(ts) {
             return new Date(ts).toLocaleString([], {
@@ -1965,18 +1802,6 @@
             const quotePreview = m.reply_to ? (m.reply_to.length > 60 ? m.reply_to.slice(0, 60) + '…' : m.reply_to) : null;
             const seenTime = getAdminSeenTime(m);
 
-            let bodyHtml = '';
-            if (m.type === 'animatedEmoji' && m.emoji) {
-                bodyHtml = `<span class="animated-emoji ae-${String(m.emoji).codePointAt(0)}">${escapeHtml(m.emoji)}</span>`;
-            } else if (m.type === 'photo' && m.photo_url) {
-                bodyHtml = `<a href="${escapeHtml(m.photo_url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
-                                <img class="chat-photo-preview" src="${escapeHtml(m.photo_url)}" alt="Photo">
-                            </a>
-                            <div class="photo-link-title">📷 Photo</div>`;
-            } else {
-                bodyHtml = `<div>${escapeHtml(m.text || '')}</div>`;
-            }
-
             const details = `
                 <div class="admin-message-details" data-admin-details-key="${key}">
                     <div>Sent: ${formatAdminMessageDateTime(m.timestamp)}</div>
@@ -1985,20 +1810,17 @@
                     </div>
                 </div>`;
 
-            const deleteBtn = `<button class="admin-msg-delete-btn" onclick="event.stopPropagation();deleteAdminMessage('${key}')" title="Delete message">🗑️</button>`;
-
             return `
                 <div class="chat-row ${rowCls}" id="admmsgrow-${key}">
                     ${rowCls === 'from-admin' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
                     <div class="chat-bubble" onclick="toggleAdminMessageDetails(event, '${key}')">
-                        ${quotePreview ? `<div class="cb-quote">${escapeHtml(quotePreview)}</div>` : ''}
-                        ${bodyHtml}
-                        ${m.link_url ? `<div><a href="${escapeHtml(m.link_url)}" target="_blank" rel="noopener" class="cb-link" onclick="event.stopPropagation()">🔗 ${escapeHtml(m.link_title || 'Open Link')}</a></div>` : ''}
+                        ${quotePreview ? `<div class="cb-quote">${quotePreview}</div>` : ''}
+                        <div>${m.text}</div>
+                        ${m.link_url ? `<div><a href="${m.link_url}" target="_blank" class="cb-link" onclick="event.stopPropagation()">🔗 ${m.link_title || 'Open Link'}</a></div>` : ''}
                         <div class="cb-time">${time}</div>
                         ${details}
                     </div>
                     ${rowCls === 'from-user' ? `<button class="reply-icon-btn" onclick="event.stopPropagation();setAdminReply('${key}')" title="Reply">❕</button>` : ''}
-                    ${deleteBtn}
                 </div>
             `;
         }
@@ -2082,104 +1904,11 @@
             document.getElementById('adminReplyPreviewBar').classList.remove('show');
         });
 
-        // ========================================
-        // LINK PANEL (+ button) — hidden by default, opens on click
-        // ========================================
-        document.getElementById('adminLinkBtn').addEventListener('click', function() {
-            document.getElementById('chatLinkPanel').classList.toggle('show');
-        });
-        document.getElementById('chatLinkPanelClose').addEventListener('click', function() {
-            document.getElementById('chatLinkTitle').value = '';
-            document.getElementById('chatLinkUrl').value = '';
-            document.getElementById('chatLinkPanel').classList.remove('show');
-        });
-
-        // ========================================
-        // SEND "admin is typing" STATUS TO USER
-        // Ephemeral by design: cleared after 2.5s of no typing, cleared
-        // immediately on send, and cleared when switching threads —
-        // this is what stops the "purana typing status atka rehta hai"
-        // bug from coming back.
-        // ========================================
-        let adminTypingTimeout = null;
-        document.getElementById('chatReplyInput').addEventListener('input', function() {
-            if (!activeChatUserId) return;
-            const uid = activeChatUserId;
-            chatDb.ref('chats/' + uid).update({ admin_typing: new Date().toISOString() }).catch(function() {});
-            clearTimeout(adminTypingTimeout);
-            adminTypingTimeout = setTimeout(function() {
-                chatDb.ref('chats/' + uid).update({ admin_typing: null }).catch(function() {});
-            }, 2500);
-        });
-
         document.getElementById('chatBackBtn').addEventListener('click', function() {
-            const uid = activeChatUserId;
-            if (uid) {
-                if (activeChatListener) {
-                    chatDb.ref('chats/' + uid + '/messages').off('value', activeChatListener);
-                }
-                if (activePresenceListener) {
-                    chatDb.ref('chats/' + uid).off('value', activePresenceListener);
-                }
-            }
-            activeChatListener = null;
-            activePresenceListener = null;
-            activeChatUserId = null;
             document.getElementById('chatLayout').classList.remove('thread-open');
-            if (presenceTickInterval) {
-                clearInterval(presenceTickInterval);
-                presenceTickInterval = null;
-            }
+            document.documentElement.classList.remove('chat-fullscreen-lock');
+            document.body.classList.remove('chat-fullscreen-lock');
         });
-
-        const ADMIN_EMOJIS = ['🤎','💋','♥️','🌹','😘','🫰','❤️','🥰','😚','💜','💙','💓','😅','🤣','🥺','🫣','🤔','😂','😭','😍'];
-
-        function setupAdminQuickSend() {
-            const panel = document.getElementById('adminQuickPanel'), grid = document.getElementById('adminEmojiGrid');
-            if (!panel || !grid) return;
-            grid.innerHTML = ADMIN_EMOJIS.map(function(e){ return `<button type="button" class="emoji-send-btn" data-emoji="${escapeHtml(e)}">${e}</button>`; }).join('');
-            document.getElementById('chatPlusBtn').addEventListener('click',function(){panel.classList.toggle('show')});
-            document.getElementById('adminQuickPanelClose').addEventListener('click',function(){panel.classList.remove('show');grid.classList.remove('show')});
-            document.getElementById('adminEmojiBtn').addEventListener('click',function(){grid.classList.toggle('show')});
-            document.getElementById('adminGifBtn').addEventListener('click',function(){grid.classList.add('show')});
-            grid.addEventListener('click',function(e){
-                const b=e.target.closest('.emoji-send-btn'); if(b && activeChatUserId) sendAnimatedEmoji(b.getAttribute('data-emoji'));
-            });
-            document.getElementById('adminPhotoBtn').addEventListener('click',function(){
-                if(!activeChatUserId) return showToast('Pehle user conversation select karein','error');
-                document.getElementById('adminPhotoInput').click();
-            });
-            document.getElementById('adminPhotoInput').addEventListener('change',handleAdminPhotoUpload);
-        }
-
-        function sendAnimatedEmoji(emoji) {
-            if(!activeChatUserId || !emoji) return;
-            const uid=activeChatUserId, ts=new Date().toISOString();
-            const msg={sender:'admin',type:'animatedEmoji',emoji:emoji,text:emoji,timestamp:ts};
-            chatDb.ref('chats/'+uid+'/messages').push(msg).then(function(){
-                return chatDb.ref('chats/'+uid).update({last_message:emoji,last_sender:'admin',last_timestamp:ts});
-            }).then(function(){
-                document.getElementById('adminQuickPanel').classList.remove('show');
-                document.getElementById('adminEmojiGrid').classList.remove('show');
-            }).catch(function(err){console.error(err);showToast('❌ Emoji send nahi ho paya','error')});
-        }
-
-        function handleAdminPhotoUpload() {
-            const input=document.getElementById('adminPhotoInput'), file=input.files && input.files[0];
-            if(!file) return;
-            if(!file.type.startsWith('image/')) { showToast('❌ Sirf image file bhej sakte hain','error'); input.value=''; return; }
-            if(file.size>10*1024*1024){showToast('Photo 10MB se chhoti honi chahiye!','error');input.value='';return;}
-            const btn=document.getElementById('adminPhotoBtn'), old=btn.textContent, uid=activeChatUserId, ts=new Date().toISOString();
-            btn.textContent='⏳';btn.disabled=true;
-            uploadToImgBB(file).then(function(url){
-                const msg={sender:'admin',type:'photo',text:'📷 Photo',photo_url:url,link_title:'Photo',link_url:url,timestamp:ts};
-                return chatDb.ref('chats/'+uid+'/messages').push(msg).then(function(){
-                    return chatDb.ref('chats/'+uid).update({last_message:'📷 Photo',last_sender:'admin',last_timestamp:ts});
-                });
-            }).then(function(){showToast('✅ Photo bhej di gayi!')})
-              .catch(function(err){console.error(err);showToast('❌ Photo upload/send nahi ho paya','error')})
-              .finally(function(){btn.textContent=old;btn.disabled=false;input.value='';});
-        }
 
         function sendAdminReply() {
             if (!activeChatUserId) return;
@@ -2196,6 +1925,7 @@
                 showToast('Link ke liye Title aur URL dono bharein!', 'error');
                 return;
             }
+            clearAdminTyping();
 
             const msgData = {
                 sender: 'admin',
@@ -2211,13 +1941,8 @@
             }
 
             const uid = activeChatUserId;
-
-            // Typing indicator: sending counts as "done typing"
-            clearTimeout(adminTypingTimeout);
-            chatDb.ref('chats/' + uid).update({ admin_typing: null }).catch(function() {});
-
-            chatDb.ref('chats/' + uid + '/messages').push(msgData).then(function() {
-                return chatDb.ref('chats/' + uid).update({
+            db.ref('chats/' + uid + '/messages').push(msgData).then(function() {
+                return db.ref('chats/' + uid).update({
                     last_message: text,
                     last_sender: 'admin',
                     last_timestamp: msgData.timestamp
@@ -2226,7 +1951,6 @@
                 input.value = '';
                 document.getElementById('chatLinkTitle').value = '';
                 document.getElementById('chatLinkUrl').value = '';
-                document.getElementById('chatLinkPanel').classList.remove('show');
                 adminReplyingTo = null;
                 document.getElementById('adminReplyPreviewBar').classList.remove('show');
             }).catch(function(err) {
@@ -2239,202 +1963,24 @@
         document.getElementById('chatReplyInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') sendAdminReply();
         });
-        setupAdminQuickSend();
 
         // ========================================
-        // 🎵 LISTEN TOGETHER — Admin side
-        // Firebase node: chats/<uid>/music = {
-        //   url, title, uploaded_by ('admin'|'user'),
-        //   status: 'pending' | 'playing' | 'paused' | 'stopped',
-        //   requested_by ('admin'|'user'),
-        //   admin_allowed, user_allowed (bool),
-        //   started_at (ISO — playback ka reference point sync ke liye),
-        //   paused_at_seconds (jab paused kiya tab tak ka position)
+        // TYPING INDICATOR — admin type kare to user ko
+        // "typing..." dikhta hai (user side se bhi read hota hai).
         // ========================================
-        const adminAudioEl = new Audio();
-        adminAudioEl.crossOrigin = 'anonymous';
-        let adminMusicSyncedStatus = null;
-
-        document.getElementById('chatMusicBtn').addEventListener('click', function() {
-            const panel = document.getElementById('adminMusicPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        });
-
-        document.getElementById('adminMusicUploadBtn').addEventListener('click', function() {
-            document.getElementById('adminMusicFile').click();
-        });
-
-        let pendingAdminMusicDataUrl = null;
-        document.getElementById('adminMusicFile').addEventListener('change', function() {
-            const file = this.files && this.files[0];
-            if (!file) return;
-            if (file.size > 5 * 1024 * 1024) {
-                showToast('Audio file 5MB se choti honi chahiye!', 'error');
-                this.value = '';
-                return;
+        let adminTypingTimeout = null;
+        function clearAdminTyping() {
+            clearTimeout(adminTypingTimeout);
+            if (activeChatUserId) {
+                db.ref('chats/' + activeChatUserId).update({ admin_typing: false }).catch(function() {});
             }
-            const reader = new FileReader();
-            reader.onload = function() {
-                pendingAdminMusicDataUrl = reader.result;
-                document.getElementById('adminMusicUrl').value = '';
-                if (!document.getElementById('adminMusicTitle').value.trim()) {
-                    document.getElementById('adminMusicTitle').value = file.name.replace(/\.[^/.]+$/, '');
-                }
-                showToast('✅ Song ready — ab "Request to Play Together" dabayein');
-            };
-            reader.onerror = function() {
-                showToast('❌ Song load nahi ho paya', 'error');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        document.getElementById('adminMusicSendBtn').addEventListener('click', function() {
+        }
+        document.getElementById('chatReplyInput').addEventListener('input', function() {
             if (!activeChatUserId) return;
-            const uid = activeChatUserId;
-            const urlInput = document.getElementById('adminMusicUrl').value.trim();
-            const title = document.getElementById('adminMusicTitle').value.trim() || 'Song';
-            const songUrl = urlInput || pendingAdminMusicDataUrl;
-
-            if (!songUrl) {
-                showToast('Pehle song upload karein ya URL paste karein!', 'error');
-                return;
-            }
-
-            chatDb.ref('chats/' + uid + '/music').set({
-                url: songUrl,
-                title: title,
-                uploaded_by: 'admin',
-                requested_by: 'admin',
-                status: 'pending',
-                admin_allowed: true,
-                user_allowed: false,
-                started_at: null,
-                paused_at_seconds: 0,
-                updated_at: new Date().toISOString()
-            }).then(function() {
-                showToast('🎧 Request bhej di gayi — user ke allow karne ka wait...');
-                document.getElementById('adminMusicPanel').style.display = 'none';
-                document.getElementById('adminMusicUrl').value = '';
-                document.getElementById('adminMusicTitle').value = '';
-                pendingAdminMusicDataUrl = null;
-                document.getElementById('adminMusicFile').value = '';
-            }).catch(function(err) {
-                console.error(err);
-                showToast('❌ Request bhej nahi payi', 'error');
-            });
+            db.ref('chats/' + activeChatUserId).update({ admin_typing: true }).catch(function() {});
+            clearTimeout(adminTypingTimeout);
+            adminTypingTimeout = setTimeout(clearAdminTyping, 2000);
         });
-
-        function adminMusicAction(uid, updates) {
-            updates.updated_at = new Date().toISOString();
-            chatDb.ref('chats/' + uid + '/music').update(updates).catch(function(err) {
-                console.error('Music action failed:', err);
-                showToast('❌ Kuch gadbad ho gayi', 'error');
-            });
-        }
-
-        function renderAdminMusicBar(uid, music) {
-            const bar = document.getElementById('adminMusicBar');
-            if (!music || music.status === 'stopped' || !music.url) {
-                bar.style.display = 'none';
-                bar.innerHTML = '';
-                if (!adminAudioEl.paused) adminAudioEl.pause();
-                adminMusicSyncedStatus = null;
-                return;
-            }
-
-            bar.style.display = 'flex';
-
-            // Pending request from the USER, admin needs to allow/decline
-            if (music.status === 'pending' && music.requested_by === 'user' && !music.admin_allowed) {
-                bar.innerHTML = `
-                    <span style="font-size:20px;">🎵</span>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:600;font-size:14px;">User wants to listen together</div>
-                        <div style="color:#a5b4fc;font-size:12px;">${music.title || 'Song'}</div>
-                    </div>
-                    <button id="adminMusicAllowBtn" style="background:#4cc9f0;color:#0c0c2e;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:13px;">✅ Allow</button>
-                    <button id="adminMusicDeclineBtn" style="background:rgba(247,37,133,0.2);color:#f72585;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:13px;">✖ Decline</button>
-                `;
-                document.getElementById('adminMusicAllowBtn').onclick = function() {
-                    adminMusicAction(uid, { admin_allowed: true, status: 'playing', started_at: new Date().toISOString(), paused_at_seconds: 0 });
-                };
-                document.getElementById('adminMusicDeclineBtn').onclick = function() {
-                    adminMusicAction(uid, { status: 'stopped', admin_allowed: false, user_allowed: false });
-                };
-                syncAdminAudio(null); // don't play yet
-                return;
-            }
-
-            // Waiting on the other side (user hasn't allowed yet)
-            if (music.status === 'pending' && !music.user_allowed) {
-                bar.innerHTML = `
-                    <span style="font-size:20px;">⏳</span>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-weight:600;font-size:14px;">Waiting for user to allow...</div>
-                        <div style="color:#a5b4fc;font-size:12px;">${music.title || 'Song'}</div>
-                    </div>
-                    <button id="adminMusicCancelBtn" style="background:rgba(247,37,133,0.2);color:#f72585;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:13px;">✖ Cancel</button>
-                `;
-                document.getElementById('adminMusicCancelBtn').onclick = function() {
-                    adminMusicAction(uid, { status: 'stopped' });
-                };
-                syncAdminAudio(null);
-                return;
-            }
-
-            // Playing / paused — both allowed
-            const isPlaying = music.status === 'playing';
-            bar.innerHTML = `
-                <span style="font-size:20px;">🎧</span>
-                <div style="flex:1;min-width:0;">
-                    <div style="font-weight:600;font-size:14px;">${music.title || 'Song'}</div>
-                    <div style="color:#a5b4fc;font-size:12px;">Listening together with user</div>
-                </div>
-                <button id="adminMusicToggleBtn" style="background:rgba(76,201,240,0.2);color:#4cc9f0;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;">${isPlaying ? '⏸' : '▶️'}</button>
-                <button id="adminMusicStopBtn" style="background:rgba(247,37,133,0.2);color:#f72585;border:none;border-radius:8px;padding:7px 14px;cursor:pointer;font-weight:700;font-size:13px;">⏹ Stop</button>
-            `;
-            document.getElementById('adminMusicToggleBtn').onclick = function() {
-                if (isPlaying) {
-                    adminMusicAction(uid, { status: 'paused', paused_at_seconds: adminAudioEl.currentTime || 0 });
-                } else {
-                    adminMusicAction(uid, { status: 'playing', started_at: new Date(Date.now() - (music.paused_at_seconds || 0) * 1000).toISOString() });
-                }
-            };
-            document.getElementById('adminMusicStopBtn').onclick = function() {
-                adminMusicAction(uid, { status: 'stopped', admin_allowed: false, user_allowed: false });
-            };
-
-            syncAdminAudio(music);
-        }
-
-        function syncAdminAudio(music) {
-            if (!music || (music.status !== 'playing' && music.status !== 'paused')) {
-                if (!adminAudioEl.paused) adminAudioEl.pause();
-                return;
-            }
-            if (adminAudioEl.src !== music.url) {
-                adminAudioEl.src = music.url;
-            }
-            if (music.status === 'paused') {
-                adminAudioEl.pause();
-                if (Math.abs(adminAudioEl.currentTime - (music.paused_at_seconds || 0)) > 0.75) {
-                    adminAudioEl.currentTime = music.paused_at_seconds || 0;
-                }
-                return;
-            }
-            // status === 'playing' — sync to the shared started_at timestamp
-            const elapsed = (Date.now() - new Date(music.started_at).getTime()) / 1000;
-            if (elapsed >= 0) {
-                if (Math.abs(adminAudioEl.currentTime - elapsed) > 1.2) {
-                    adminAudioEl.currentTime = Math.max(0, elapsed);
-                }
-                if (adminAudioEl.paused) {
-                    adminAudioEl.play().catch(function() {
-                        showToast('🔈 Browser ne autoplay block kiya — play button dabayein', 'error');
-                    });
-                }
-            }
-        }
 
         // ========================================
         // LOAD ADMIN DATA
@@ -2443,14 +1989,13 @@
             loadChatList();
             loadStats();
             setupAdminPresence();
-            loadUsersList();
             document.getElementById('waLinkDisplay').textContent = WHATSAPP_GROUP_LINK;
         }
 
         // Admin ka online/last-seen status — users ko unke chat header
         // mein dikhta hai (ek hi admin hai, isliye global node)
         function setupAdminPresence() {
-            const adminPresenceRef = chatDb.ref('admin_presence');
+            const adminPresenceRef = db.ref('admin_presence');
             db.ref('.info/connected').on('value', function(snap) {
                 if (snap.val() === false) return;
                 adminPresenceRef.onDisconnect().update({ online: false, last_seen: new Date().toISOString() }).then(function() {
@@ -2470,14 +2015,6 @@
                 document.getElementById('maintenanceToggle').textContent = status === 'ON' ? 'Turn OFF' : 'Turn ON';
                 document.getElementById('maintenanceToggle').className = status === 'ON' ? 'btn-success' : 'btn-warning';
             });
-
-            // Announcement closed status
-            chatDb.ref('settings/announcementClosed').on('value', function(snap) {
-                const isClosed = snap.val() === true;
-                document.getElementById('announcementCloseStatus').textContent = 'Current: ' + (isClosed ? 'CLOSED' : 'OPEN');
-                document.getElementById('announcementCloseToggle').textContent = isClosed ? 'Open Announcement' : 'Close Announcement';
-                document.getElementById('announcementCloseToggle').className = isClosed ? 'btn-success' : 'btn-warning';
-            });
         }
 
         // ========================================
@@ -2485,141 +2022,15 @@
         // ========================================
         function toggleMaintenance() {
             db.ref('settings/maintenance').once('value').then(function(snap) {
-                const isOn = snap.val() === 'on';
-                if (!isOn) {
-                    const reason = prompt('Website band karne ka reason likhein (users ko yahi reason dikhega):');
-                    if (reason === null) return;
-                    if (!reason.trim()) throw new Error('REASON_REQUIRED');
-                    return Promise.all([
-                        db.ref('settings/maintenance').set('on'),
-                        updateMaintenanceReason(reason.trim())
-                    ]);
-                }
-                return db.ref('settings/maintenance').set('off');
-            }).then(function(result) {
-                if (result === undefined) return;
-                showToast('✅ Website maintenance status updated');
+                const current = snap.val() === 'on' ? 'off' : 'on';
+                return db.ref('settings/maintenance').set(current);
+            }).then(function() {
+                showToast('✅ Maintenance mode updated');
             }).catch(function(err) {
-                if (err.message === 'REASON_REQUIRED') return showToast('❌ Reason zaroori hai', 'error');
                 console.error(err);
                 showToast('❌ Kuch gadbad ho gayi', 'error');
             });
         }
-
-        // ========================================
-        // TOGGLE ANNOUNCEMENT CLOSED
-        // ========================================
-        function toggleAnnouncementClosed() {
-            loadAnnouncementClosed().then(function(isClosed) {
-                if (!isClosed) {
-                    const reason = prompt('Announcement band karne ka reason likhein (users ko yahi reason dikhega):');
-                    if (reason === null) return null;
-                    if (!reason.trim()) throw new Error('REASON_REQUIRED');
-                    return Promise.all([
-                        updateAnnouncementClosed(true),
-                        updateAnnouncementClosedReason(reason.trim())
-                    ]);
-                }
-                return updateAnnouncementClosed(false);
-            }).then(function(result) {
-                if (result === null || result === undefined) return;
-                showToast('✅ Announcement access updated');
-            }).catch(function(err) {
-                if (err.message === 'REASON_REQUIRED') return showToast('❌ Reason zaroori hai', 'error');
-                console.error(err);
-                showToast('❌ Kuch gadbad ho gayi', 'error');
-            });
-        }
-
-        // ========================================
-        // USERS TAB — list, block, unblock
-        // ========================================
-        function formatUserLastSeen(ts) {
-            if (!ts) return 'never';
-            const d = new Date(ts);
-            if (isNaN(d.getTime())) return 'unknown';
-            const min = Math.floor(Math.max(0, Date.now() - d.getTime()) / 60000);
-            if (min < 1) return 'just now';
-            if (min < 60) return min + ' min ago';
-            const hrs = Math.floor(min / 60);
-            if (hrs < 24) return hrs + ' hr ago';
-            return d.toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-        }
-
-        function renderUsersList(users) {
-            window.__adminUsersCache = users || {};
-            const container = document.getElementById('usersList');
-            const uids = Object.keys(users || {});
-            if (!uids.length) {
-                container.innerHTML = '<div class="empty-msg">Abhi tak koi user login nahi hua.</div>';
-                return;
-            }
-
-            uids.sort(function(a, b) {
-                const at = new Date((users[a] && users[a].lastSeen) || 0).getTime();
-                const bt = new Date((users[b] && users[b].lastSeen) || 0).getTime();
-                return bt - at;
-            });
-
-            container.innerHTML = uids.map(function(uid) {
-                const u = users[uid] || {};
-                const blocked = u.blocked === true;
-                return `
-                    <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                        <div>
-                            <h4 style="margin-bottom:2px;">${(u.name || 'Unknown')}${blocked ? ' <span style="color:#f72585;font-size:12px;">(Blocked)</span>' : ''}</h4>
-                            <p style="margin-bottom:0;">Last seen: ${formatUserLastSeen(u.lastSeen)}</p>
-                        </div>
-                        <div style="display:flex;gap:7px;align-items:center;">
-                            <button type="button" class="${blocked ? 'btn-success' : 'btn-danger-small'}" onclick="${blocked ? 'unblockUserAction' : 'blockUserAction'}('${uid}')">
-                                ${blocked ? '✅ Unblock' : '🚫 Block'}
-                            </button>
-                            <button type="button" class="btn-danger-small" onclick="deleteUserAction('${uid}')">🗑️ Delete</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function loadUsersList() {
-            chatDb.ref('users').on('value', function(snap) {
-                renderUsersList(snap.val() || {});
-            }, function(err) {
-                console.error('Users list load failed:', err);
-                document.getElementById('usersList').innerHTML = '<div class="empty-msg">❌ Users load nahi ho paye.</div>';
-            });
-        }
-
-        function blockUserAction(uid) {
-            blockUser(uid).then(function() {
-                showToast('🚫 User block ho gaya');
-            }).catch(function(err) {
-                console.error(err);
-                showToast('❌ Block nahi ho paya', 'error');
-            });
-        }
-
-        function unblockUserAction(uid) {
-            unblockUser(uid).then(function() {
-                showToast('✅ User unblock ho gaya');
-            }).catch(function(err) {
-                console.error(err);
-                showToast('❌ Unblock nahi ho paya', 'error');
-            });
-        }
-        function deleteUserAction(uid) {
-            const users = window.__adminUsersCache || {};
-            const uname = (users[uid] && users[uid].name) || 'this user';
-            if (!confirm('"' + uname + '" ko delete karein? Isse user registry aur conversation delete hogi. Non-blocked user baad mein dobara login kar sakta hai.')) return;
-            deleteUser(uid).then(function(){
-                showToast('🗑️ User delete ho gaya');
-            }).catch(function(err){
-                console.error(err);
-                showToast('❌ User delete nahi ho paya','error');
-            });
-        }
-
-
 
         // ========================================
         // CHANGE PASSWORDS
@@ -2664,7 +2075,7 @@
         // LOGOUT ADMIN
         // ========================================
         function logoutAdmin() {
-            chatDb.ref('admin_presence').update({
+            db.ref('admin_presence').update({
                 online: false,
                 last_seen: new Date().toISOString()
             }).catch(function() {}).finally(function() {
@@ -2679,12 +2090,6 @@
         window.openChatThread = openChatThread;
         window.setAdminReply = setAdminReply;
         window.toggleMaintenance = toggleMaintenance;
-        window.toggleAnnouncementClosed = toggleAnnouncementClosed;
-        window.blockUserAction = blockUserAction;
-        window.unblockUserAction = unblockUserAction;
-        window.deleteUserAction = deleteUserAction;
-        window.deleteConversation = deleteConversation;
-        window.deleteAdminMessage = deleteAdminMessage;
         window.logoutAdmin = logoutAdmin;
         window.showAdminTab = showAdminTab;
     </script>
@@ -2697,39 +2102,6 @@ window.openAdminSettings=openAdminSettings;
 </script>
 
 </body>
-<style>
-.chat-list-delete-btn{position:absolute;right:8px;bottom:7px;width:28px;height:28px;border:0;border-radius:9px;background:rgba(247,37,133,.10);color:#ff7ca5;cursor:pointer;opacity:.55;transition:.18s}
-.chat-list-delete-btn:hover{opacity:1;background:rgba(247,37,133,.22);transform:scale(1.06)}
-.chat-list-item{padding-right:42px!important}
-.admin-msg-delete-btn{display:inline-flex;vertical-align:bottom;margin:0 3px;width:22px;height:22px;border:0;border-radius:7px;align-items:center;justify-content:center;background:rgba(247,37,133,.10);color:#ff7ca5;cursor:pointer;font-size:11px;opacity:.65}
-.admin-msg-delete-btn:hover{opacity:1;background:rgba(247,37,133,.25)}
-.chat-photo-quick-btn{flex:0 0 44px;width:44px;height:44px;border-radius:15px;border:1px solid var(--chat-line);background:#101e32;color:#c2cede;font-size:18px;cursor:pointer}
-.chat-photo-quick-btn:active{transform:scale(.95)}
-.chat-quick-panel{display:none;flex-direction:column;gap:9px;margin-bottom:8px;padding:10px;border-radius:14px;background:#0e1b2e;border:1px solid var(--chat-line);box-shadow:0 15px 35px rgba(0,0,0,.25)}
-.chat-quick-panel.show{display:flex}
-.quick-panel-head{display:flex;align-items:center;justify-content:space-between;color:#dce5f3;font-size:12px}
-.quick-panel-actions{display:flex;gap:8px}
-.quick-option-btn{border:1px solid var(--chat-line);background:#101e32;color:#cbd6e5;border-radius:10px;padding:8px 12px;cursor:pointer;font-size:12px}
-.emoji-grid{display:none;grid-template-columns:repeat(8,1fr);gap:5px}
-.emoji-grid.show{display:grid}
-.emoji-send-btn{border:0;background:rgba(255,255,255,.04);border-radius:10px;padding:8px 3px;font-size:23px;cursor:pointer;line-height:1}
-.emoji-send-btn:hover{background:rgba(117,100,255,.18);transform:scale(1.06)}
-.chat-photo-preview{display:block;max-width:240px;max-height:260px;width:auto;height:auto;border-radius:12px;margin:2px 0 5px;object-fit:cover}
-.photo-link-title{font-size:10px;opacity:.72;margin-top:2px}
-.animated-emoji{display:inline-block;font-size:56px;line-height:1.05;transform-origin:center}
-.ae-9829,.ae-10084{animation:aeHeart 1s ease-in-out infinite}
-.ae-128522,.ae-128525,.ae-128526,.ae-129303{animation:aeBounce .8s ease-in-out infinite}
-.ae-129319{animation:aeKiss 1.2s ease-in-out infinite}
-.ae-127801{animation:aeRose 1.5s ease-in-out infinite}
-.ae-129324{animation:aeThink 1.3s ease-in-out infinite}
-@keyframes aeHeart{0%,100%{transform:scale(1)}50%{transform:scale(1.24)}}
-@keyframes aeKiss{0%,100%{transform:scale(1) rotate(0)}35%{transform:scale(1.18) rotate(-8deg)}70%{transform:scale(1.08) rotate(7deg)}}
-@keyframes aeRose{0%,100%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(8deg) translateY(-5px)}}
-@keyframes aeBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.1)}}
-@keyframes aeCry{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-5px) rotate(-5deg)}75%{transform:translateX(5px) rotate(5deg)}}
-@keyframes aeThink{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg) translateY(-3px)}}
-@media(max-width:600px){.emoji-grid{grid-template-columns:repeat(6,1fr)}.chat-photo-preview{max-width:190px}}
-</style>
 </html>
 <style>
 /* ===== LAST FIX: truly compact message bubbles ===== */
@@ -2792,5 +2164,43 @@ window.openAdminSettings=openAdminSettings;
     padding:8px 10px 6px !important;
     font-size:14px !important;
   }
+}
+
+/* =========================================================
+   FINAL SCROLL FIX
+   Bahut saare purane CSS blocks upar overflow/height set kar rahe
+   the aur ek-dusre ko override kar rahe the, jiski wajah se
+   scroll kaam nahi kar raha tha. Ye aakhri, sabse zyada priority
+   wala rule hai — hamesha jeetega aur scroll guaranteed rakhega.
+   ========================================================= */
+.chat-thread-panel{
+  display:flex !important;
+  flex-direction:column !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.chat-thread-active{
+  display:flex !important;
+  flex-direction:column !important;
+  flex:1 1 auto !important;
+  min-height:0 !important;
+  overflow:hidden !important;
+}
+.typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: 2px;
+}
+.typing-dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: #3ddc84;
+    animation: typingBounce 1.2s infinite ease-in-out;
+}
+.typing-dots span:nth-child(2) { animation-delay: .15s; }
+.typing-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: .5; }
+    30% { transform: translateY(-3px); opacity: 1; }
 }
 </style>
